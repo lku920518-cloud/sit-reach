@@ -1,0 +1,504 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>좌전굴 루틴 트래커</title>
+<link rel="manifest" href="manifest.webmanifest">
+<meta name="theme-color" content="#0e1117">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="좌전굴">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700;900&display=swap" rel="stylesheet">
+<style>
+/* Layout idea: sticky status header, one card per stretch step, fixed timer bar at the thumb. Single dark world. */
+:root{
+  --bg:#0e1117; --surface:#161b24; --surface2:#1d2431; --line:#2a3344;
+  --text:#eef1f5; --muted:#9aa5b8; --accent:#f2a93b; --ok:#3fbf8f; --hot:#ef6b6b; --info:#5aa9e6;
+  --font:"Noto Sans KR",system-ui,-apple-system,"Apple SD Gothic Neo","Malgun Gothic",sans-serif;
+  color-scheme:dark;
+}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0}
+body{background:var(--bg);color:var(--text);font-family:var(--font);font-size:14px;line-height:1.55;
+  padding-bottom:calc(112px + env(safe-area-inset-bottom));}
+button{font:inherit;color:inherit;cursor:pointer;touch-action:manipulation;min-height:40px}
+button:focus-visible,a:focus-visible,input:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+h1,h2,h3,p{margin:0;text-wrap:balance}
+.wrap{max-width:640px;margin:0 auto;padding:0 16px}
+
+/* header */
+.top{position:sticky;top:0;z-index:20;background:rgba(14,17,23,.94);backdrop-filter:blur(10px);
+  border-bottom:1px solid var(--line);padding-top:calc(10px + env(safe-area-inset-top));padding-bottom:10px}
+.top-row{display:flex;justify-content:space-between;align-items:flex-start;gap:12px}
+.kicker{font-size:11px;font-weight:700;letter-spacing:.04em;color:var(--accent)}
+.date{color:var(--muted);font-size:12px;margin-left:6px}
+h1{font-size:19px;font-weight:900;margin-top:2px}
+.streak{flex:none;text-align:right;background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:6px 12px}
+.streak small{display:block;font-size:10px;color:var(--muted);line-height:1.2}
+.streak b{font-size:17px;color:var(--accent);font-variant-numeric:tabular-nums}
+.prog{margin-top:10px}
+.prog-row{display:flex;justify-content:space-between;font-size:12px;margin-bottom:5px;color:var(--muted)}
+.prog-row b{color:var(--ok);font-variant-numeric:tabular-nums}
+.bar{height:8px;background:var(--surface2);border-radius:99px;overflow:hidden}
+.bar i{display:block;height:100%;width:0;background:linear-gradient(90deg,var(--accent),var(--ok));border-radius:99px;transition:width .25s}
+.tabs{display:grid;grid-template-columns:repeat(3,1fr);gap:4px;margin-top:10px;background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:4px}
+.tab{border:0;background:transparent;border-radius:9px;font-size:12px;font-weight:700;color:var(--muted);padding:6px 2px;line-height:1.3}
+.tab[aria-selected="true"]{background:var(--accent);color:#1a1205}
+
+/* main */
+main{padding-top:14px;display:flex;flex-direction:column;gap:12px}
+.banner{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:12px 14px;color:#cdd5e2;font-size:13px}
+.banner em{display:block;margin-top:6px;font-style:normal;color:var(--muted);font-size:12px}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:16px;padding:14px}
+.card.done{border-color:rgba(63,191,143,.55);background:#13201d}
+.card-head{display:flex;justify-content:space-between;gap:10px;align-items:flex-start}
+.badge{display:inline-block;font-size:11px;font-weight:900;color:var(--accent);background:var(--surface2);border:1px solid var(--line);border-radius:6px;padding:1px 8px}
+.sub{font-size:12px;color:var(--muted);margin-left:6px}
+h2{font-size:16px;font-weight:900;margin-top:6px}
+.card.done h2{color:var(--muted);text-decoration:line-through}
+.allbtn{flex:none;background:var(--surface2);border:1px solid var(--line);border-radius:10px;font-size:12px;font-weight:700;padding:6px 10px;font-variant-numeric:tabular-nums}
+.card.done .allbtn{background:var(--ok);border-color:var(--ok);color:#06231a}
+.meta{display:flex;flex-wrap:wrap;gap:6px;margin-top:10px;font-size:12px;font-weight:500}
+.chip{background:var(--bg);border:1px solid var(--line);border-radius:8px;padding:3px 9px}
+.chip.rpe{color:var(--accent)}
+.chip.timer{background:rgba(90,169,230,.12);border-color:rgba(90,169,230,.4);color:#a9d3f5;font-weight:700}
+.note{margin-top:10px;background:rgba(242,169,59,.12);border:1px solid rgba(242,169,59,.4);color:#f7c978;border-radius:10px;padding:8px 12px;font-size:13px;font-weight:700}
+.vids{display:flex;flex-wrap:wrap;gap:6px;margin-top:10px}
+.vid{display:inline-flex;align-items:center;gap:6px;background:rgba(239,107,107,.12);border:1px solid rgba(239,107,107,.4);color:#f4a6a6;border-radius:10px;padding:6px 10px;font-size:12px;font-weight:700;text-decoration:none}
+.cues{margin-top:12px;background:var(--bg);border:1px solid var(--line);border-radius:12px;padding:12px;font-size:13px}
+.cues p+p{margin-top:8px;padding-top:8px;border-top:1px solid var(--line);color:#b6c0d1}
+.cues b{margin-right:4px}
+.cue-a{color:var(--accent)} .cue-r{color:var(--hot)}
+.sets{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:12px}
+.set{display:flex;align-items:center;gap:8px;text-align:left;background:var(--bg);border:1px solid var(--line);border-radius:12px;padding:10px;font-size:12px;font-weight:700;color:#cdd5e2;min-height:46px}
+.set:active{transform:scale(.97)}
+.set .box{flex:none;width:18px;height:18px;border-radius:5px;border:1.5px solid #4a566c;display:grid;place-items:center}
+.set[aria-pressed="true"]{background:rgba(63,191,143,.16);border-color:rgba(63,191,143,.7);color:#9be6c8}
+.set[aria-pressed="true"] .box{background:var(--ok);border-color:var(--ok);color:#06231a}
+
+/* footer controls */
+.foot{margin-top:6px;padding:14px 0 8px;border-top:1px solid var(--line);display:flex;flex-direction:column;gap:12px;font-size:12px;color:var(--muted)}
+.foot label{display:flex;align-items:center;gap:8px;min-height:32px}
+.foot input[type=checkbox]{width:18px;height:18px;accent-color:var(--accent)}
+.foot .row{display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap}
+.ghost{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:8px 14px;font-weight:700;color:#cdd5e2}
+.ghost:hover{border-color:var(--hot);color:#f4a6a6}
+
+/* timer bar */
+.timerbar{position:fixed;left:0;right:0;bottom:0;z-index:30;background:rgba(13,19,32,.97);backdrop-filter:blur(12px);
+  border-top:1px solid var(--line);padding:10px 0 calc(10px + env(safe-area-inset-bottom))}
+.tb{display:flex;align-items:center;justify-content:space-between;gap:8px}
+.clock{flex:none;min-width:104px;text-align:center;background:#080b12;border:1px solid var(--line);border-radius:12px;padding:4px 10px}
+.phase{font-size:10px;font-weight:700;letter-spacing:.02em;color:var(--muted);white-space:nowrap}
+.time{font-size:24px;font-weight:900;font-variant-numeric:tabular-nums;line-height:1.15;font-family:ui-monospace,SFMono-Regular,Menlo,monospace}
+.clock.p1 .phase,.clock.p1 .time{color:var(--accent)}
+.clock.p2 .phase,.clock.p2 .time{color:var(--hot)}
+.clock.p3 .phase,.clock.p3 .time,.clock.fin .phase,.clock.fin .time{color:var(--ok)}
+.presets{display:flex;flex-wrap:wrap;gap:6px;flex:1;min-width:0}
+.pre{min-height:36px;padding:0 10px;border-radius:9px;border:1px solid var(--line);background:var(--surface2);font-size:12px;font-weight:700}
+.pre.pnf{background:rgba(242,169,59,.14);border-color:rgba(242,169,59,.45);color:#f7c978}
+.ctrl{flex:none;display:flex;gap:6px}
+.cbtn{width:46px;height:46px;border-radius:12px;border:1px solid var(--line);background:var(--surface2);display:grid;place-items:center}
+.cbtn.go{background:#1f9d73;border-color:#1f9d73;color:#fff}
+.cbtn.go.run{background:#c98213;border-color:#c98213}
+
+/* modal */
+.modal{position:fixed;inset:0;z-index:50;background:rgba(0,0,0,.72);display:flex;align-items:center;justify-content:center;padding:16px}
+.modal[hidden]{display:none}
+.dlg{background:var(--surface);border:1px solid var(--line);border-radius:16px;max-width:340px;width:100%;padding:18px}
+.dlg h3{font-size:16px;font-weight:900}
+.dlg p{margin-top:8px;font-size:13px;color:var(--muted)}
+.dlg .acts{display:flex;justify-content:flex-end;gap:8px;margin-top:16px}
+.dlg .acts button{border-radius:10px;border:1px solid var(--line);padding:8px 16px;font-weight:700;background:var(--surface2)}
+.dlg .acts .danger{background:#d24d4d;border-color:#d24d4d;color:#fff}
+@media (prefers-reduced-motion:reduce){.bar i{transition:none}.set:active{transform:none}}
+@media (max-width:380px){.presets .pre:nth-child(3){display:none}}
+</style>
+</head>
+<body>
+
+<header class="top">
+  <div class="wrap">
+    <div class="top-row">
+      <div>
+        <div><span class="kicker">186CM 장신 프로토콜</span><span class="date" id="dateText"></span></div>
+        <h1>좌전굴 끝범위 · 신경 가동성</h1>
+      </div>
+      <div class="streak"><small>연속 달성</small><b><span id="streakNum">0</span>일째</b></div>
+    </div>
+    <div class="prog">
+      <div class="prog-row"><span id="progLabel"></span><b id="progPct">0%</b></div>
+      <div class="bar"><i id="progBar"></i></div>
+    </div>
+    <div class="tabs" role="tablist" aria-label="루틴 모드">
+      <button class="tab" role="tab" data-act="mode" data-mode="full" id="tab-full">취침 전 풀 루틴<br>15분</button>
+      <button class="tab" role="tab" data-act="mode" data-mode="warmup" id="tab-warmup">훈련 전 웜업<br>2분</button>
+      <button class="tab" role="tab" data-act="mode" data-mode="exam" id="tab-exam">시험 직전 대기<br>2분</button>
+    </div>
+  </div>
+</header>
+
+<main class="wrap">
+  <div class="banner" id="banner"></div>
+  <div id="cards" style="display:flex;flex-direction:column;gap:12px"></div>
+
+  <div class="foot">
+    <label><input type="checkbox" id="wakeChk" data-act="wake"><span>루틴 중 화면 켜짐 유지 <span id="wakeStat"></span></span></label>
+    <div class="row">
+      <span id="syncStat">저장: 이 기기</span>
+      <button class="ghost" data-act="askReset">오늘 기록 초기화</button>
+    </div>
+    <p>하루 기준은 새벽 4시입니다. 자정을 넘겨 운동해도 같은 날로 기록됩니다. iOS는 무음 스위치가 켜져 있으면 비프음이 나지 않을 수 있습니다.</p>
+  </div>
+</main>
+
+<div class="timerbar">
+  <div class="wrap tb">
+    <div class="clock" id="clock"><div class="phase" id="phase">타이머 대기</div><div class="time" id="time">00:10</div></div>
+    <div class="presets">
+      <button class="pre" data-act="preset" data-sec="10" data-label="일반 10초">10초</button>
+      <button class="pre" data-act="preset" data-sec="15" data-label="휴식 15초">15초</button>
+      <button class="pre" data-act="preset" data-sec="20" data-label="홀드 20초">20초</button>
+      <button class="pre pnf" data-act="preset" data-sec="30" data-label="PNF 3단계" data-pnf="1">PNF 30초</button>
+    </div>
+    <div class="ctrl">
+      <button class="cbtn go" id="goBtn" data-act="toggle" aria-label="시작 또는 일시정지">
+        <svg id="icoPlay" width="22" height="22" viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg>
+        <svg id="icoPause" width="22" height="22" viewBox="0 0 24 24" fill="currentColor" style="display:none"><path d="M7 5h4v14H7zM13 5h4v14h-4z"/></svg>
+      </button>
+      <button class="cbtn" data-act="resetTimer" aria-label="타이머 리셋">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 4v5h5"/><path d="M5.5 15a8 8 0 1 0 1.6-8.4L4 9"/></svg>
+      </button>
+    </div>
+  </div>
+</div>
+
+<div class="modal" id="modal" hidden role="dialog" aria-modal="true" aria-labelledby="mTitle">
+  <div class="dlg">
+    <h3 id="mTitle">오늘 세트 기록을 초기화할까요?</h3>
+    <p>모든 모드의 체크가 해제됩니다. 오늘 풀 루틴 완료로 올라간 연속 일수도 함께 되돌려집니다.</p>
+    <div class="acts"><button data-act="cancelReset">취소</button><button class="danger" data-act="doReset">초기화</button></div>
+  </div>
+</div>
+
+<script>
+/* ---------- 루틴 데이터 (모드별 처방을 따로 정의) ---------- */
+const STEPS = [
+  {
+    id:'1a', badge:'STEP 1-A', title:'골반 후방경사 세팅 (누워서 다리 밀기)', subtitle:'골반 정렬 및 과긴장 해제',
+    videos:[{label:'어썸블리스 신버전 (02:30 ~ 03:00)', url:'https://www.youtube.com/watch?v=4TiA20bfr4k&t=150s'}],
+    cue:'누워서 무릎을 90도로 세운 뒤, 둔근(엉덩이)에 먼저 힘을 주어 꼬리뼈를 살짝 말아 올리고(후방경사) 발바닥으로 바닥을 앞쪽으로 밀어내는 힘을 유지. 긴 다리라서 발을 멀리 두기 쉬우니 무릎 90도를 지킬 것.',
+    tip:'목적은 햄스트링을 늘리는 것이 아니라 골반 위치를 잡는 것입니다. 허리가 바닥에서 뜨지 않게 복압을 유지하고, 요추 통증이 생기면 중단.',
+    modes:{ full:{ rx:'좌우 각 20초 × 2세트', rest:'휴식 15초', rpe:'RPE 4',
+      timer:{sec:20,label:'골반 세팅 20초'}, sets:['1세트 (좌/우 20초)','2세트 (좌/우 20초)'] } }
+  },
+  {
+    id:'1b', badge:'STEP 1-B', title:'엘리펀트 워크 (좌골신경 글라이딩)', subtitle:'좌골신경 활주성 개선',
+    videos:[{label:'어썸블리스 신버전 (04:48 ~ 05:25)', url:'https://www.youtube.com/watch?v=4TiA20bfr4k&t=288s'}],
+    cue:'상체를 과하게 숙이지 말고 손을 무릎~정강이 높이에 둠. 다리가 길수록 각도가 가팔라지기 쉬우니, 오금 당김이 5/10 이하인 각도에서만 한쪽 무릎씩 교차로 펴고 끝에서 1초 정지. 반동 금지.',
+    tip:'오금 뒤 찌릿함은 신경 자극 신호일 수 있습니다. 손 위치를 높여 각도를 줄이세요. 다리 저림이나 방사통이 이어지면 중단. 찢어지는 듯한 날카로운 통증은 근육 손상 가능성이 있으니 즉시 중단.',
+    modes:{
+      full:{ rx:'좌우 교차 30회 (편측 15회, 무릎 펼 때 1초 정지) × 2세트', rest:'휴식 15초', rpe:'RPE 4~5',
+        timer:{sec:15,label:'휴식 15초'}, sets:['1세트 (교차 30회)','2세트 (교차 30회)'] },
+      warmup:{ rx:'좌우 교차 20회 × 1세트', rest:'세트 사이 휴식 없음', rpe:'RPE 4',
+        timer:{sec:15,label:'휴식 15초'}, sets:['1세트 (교차 20회)'], note:'훈련 전 웜업: 가볍게 1세트만.' },
+      exam:{ rx:'좌우 교차 30회 × 1세트', rest:'세트 사이 휴식 없음', rpe:'RPE 4~5',
+        timer:{sec:15,label:'휴식 15초'}, sets:['1세트 (교차 30회)'], note:'시험 직전 대기: 절대 반동 금지.' }
+    }
+  },
+  {
+    id:'2', badge:'STEP 2', title:'다운독 무릎 교차 굽혔다 펴기', subtitle:'햄스트링 근복 신장 · 흉추/광배근 이완',
+    videos:[{label:'Master Choi 9분 스트레칭 (01:44 ~ 02:20)', url:'https://www.youtube.com/watch?v=5ZR8VVNZIvg&t=104s'}],
+    cue:'무릎을 먼저 충분히 굽혀 아랫배와 허벅지 앞면을 밀착시킨 뒤 시작. 복부와 허벅지가 떨어지지 않는 선까지만 한쪽 뒤꿈치씩 바닥으로 내리기. 귀는 팔 사이에 두고 턱을 당기거나 들지 않는 중립 목.',
+    tip:'뒤꿈치가 바닥에 닿지 않아도 정상입니다. 무릎부터 펴면 요추가 둥글게 말려 디스크 압력이 올라갑니다. 손목(전완) 통증이 있으면 주먹 지지, 덤벨 핸들 지지, 팔뚝 지지로 바꾸세요.',
+    modes:{ full:{ rx:'좌우 교차 10회 (편측 5회, 뒤꿈치 누를 때 2초 유지) × 2세트', rest:'휴식 20초', rpe:'RPE 5~6',
+      timer:{sec:20,label:'휴식 20초'}, sets:['1세트 (교차 10회)','2세트 (교차 10회)'] } }
+  },
+  {
+    id:'3', badge:'STEP 3', title:'벽 지지 오리궁뎅이 힌지 홀드', subtitle:'햄스트링 기시부(좌골결절) 타겟팅',
+    videos:[
+      {label:'3-A. 모티브 체력학원 기본 자세 (01:19 ~ 02:25)', url:'https://www.youtube.com/watch?v=QV6do3EWaUU&t=79s'},
+      {label:'3-B. 오금 당김 방지 무릎 굽힘 변형 (02:35 ~ 03:05)', url:'https://www.youtube.com/watch?v=QV6do3EWaUU&t=155s'}
+    ],
+    cue:'벽을 등지고 본인 발 크기만큼(1족장) 앞으로 이동. 척추 중립(가벼운 오리궁뎅이)으로 엉덩이를 벽에 가볍게 터치한 뒤 시선을 발끝 1m 앞에 고정하고 고관절만 접기.',
+    tip:'오금 뒤가 먼저 당기면 즉시 무릎을 5~10도 굽혀 장력을 햄스트링 중앙부로 옮기세요. 시선을 무릎으로 떨구지 말 것(목 중립). 앉을 때 닿는 엉덩이 뼈(좌골결절) 부위가 찌르듯 아프면 중단.',
+    modes:{
+      full:{ rx:'10초 정적 홀드 (코로 마시고 입으로 길게 내쉬기) × 4세트', rest:'휴식 10초 (다리 털기)', rpe:'RPE 6',
+        timer:{sec:10,label:'힌지 홀드 10초'}, sets:['1세트 (10초)','2세트 (10초)','3세트 (10초)','4세트 (10초)'] },
+      warmup:{ rx:'10초 홀드 × 2세트', rest:'휴식 10초 (다리 털기)', rpe:'RPE 5',
+        timer:{sec:10,label:'힌지 홀드 10초'}, sets:['1세트 (10초)','2세트 (10초)'], note:'훈련 전 웜업: 후면 사슬 예열만.' }
+    }
+  },
+  {
+    id:'4', badge:'STEP 4', title:'하프 닐링 3단계 PNF 사이클', subtitle:'끝범위 제어력 · 실전 좌전굴 전이',
+    videos:[{label:'어썸블리스 구버전 3단계 시연 (00:43 ~ 03:25)', url:'https://www.youtube.com/watch?v=Zule8q8BDgU&t=43s'}],
+    cue:'두꺼운 매트 위 한쪽 무릎 꿇기, 옆 의자/벽 가볍게 터치. ① 액티브(10초): 앞발을 위로 들어 올리는 힘 → ② 등척성(10초): 뒤꿈치로 바닥 누르기(강도 30~50%, 서서히 올리고 서서히 풀기) → ③ 패시브(10초): 힘 빼고 호흡하며 배꼽을 허벅지 쪽으로 1~2cm 이완.',
+    tip:'1단계에서 발이 안 떨어져도 정상입니다. 상체를 뒤로 젖히거나, 3단계에서 얼굴이 찌그러질 정도로 강하게 숙이면 방어 수축이 걸립니다. 무릎 압박이 불편하면 매트를 더 두껍게.',
+    modes:{
+      full:{ rx:'30초 연속 (액티브 10초 + 등척성 10초 + 패시브 10초) × 좌우 각 3세트', rest:'좌우 교대 진행', rpe:'RPE 6~7',
+        timer:{sec:30,label:'PNF 3단계',pnf:true},
+        sets:['좌측 1세트 (30초)','우측 1세트 (30초)','좌측 2세트 (30초)','우측 2세트 (30초)','좌측 3세트 (30초)','우측 3세트 (30초)'] },
+      exam:{ rx:'1단계(앞발 들기 시도) 10초 × 좌우 각 1회', rest:'좌우 교대 진행', rpe:'RPE 5',
+        timer:{sec:10,label:'1단계 액티브 10초'}, sets:['좌측 1단계 (10초)','우측 1단계 (10초)'],
+        note:'시험 직전 대기: 1단계만. 장요근·대퇴사두근 활성화용이며 강하게 누르지 않습니다.' }
+    }
+  }
+];
+const MODE_TEXT = {
+  full:'취침 전 15분 고정 루틴입니다. 골반 중립화, 신경 글라이딩, 근복 이완, 끝범위 PNF 순서로 모든 세트를 체크하세요.',
+  warmup:'메인 웨이트·러닝 직전 2분 예열 모드입니다. 1-B(엘리펀트 워크)와 3번(벽 지지 힌지)만 빠르게 진행해 후면 사슬을 깨웁니다.',
+  exam:'소방 체력시험 측정 직전 대기 시간(2분) 전용입니다. 강하게 누르지 말고 신경 활주(1-B)와 굴곡근 활성화(4번 1단계)로 즉각 1~2cm를 확보하세요.'
+};
+const MODE_NAME = {full:'풀 루틴', warmup:'웜업', exam:'시험 직전'};
+
+/* ---------- 상태 ---------- */
+const KEY = 'ff_sitreach_v2';
+const DAY_START_HOUR = 4;
+function dayKey(){
+  const d = new Date(Date.now() - DAY_START_HOUR*3600*1000);
+  return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');
+}
+function dnum(k){ const p=k.split('-').map(Number); return Date.UTC(p[0],p[1]-1,p[2])/864e5; }
+const defaults = ()=>({v:2, day:dayKey(), done:{}, streak:0, lastDone:null, undo:null, mode:'full', wake:true, savedAt:0});
+let S = defaults();
+try{ const raw=localStorage.getItem(KEY); if(raw) S=Object.assign(defaults(), JSON.parse(raw)); }catch(e){}
+
+const sk = (m,id,i)=>m+'|'+id+'|'+i;
+function modeSteps(m){ return STEPS.filter(s=>s.modes[m]); }
+function modeKeys(m){ const out=[]; modeSteps(m).forEach(s=>s.modes[m].sets.forEach((_,i)=>out.push(sk(m,s.id,i)))); return out; }
+function countDone(m){ return modeKeys(m).filter(k=>S.done[k]).length; }
+
+function ensureDay(){
+  const today = dayKey();
+  let changed = false;
+  if(S.day !== today){ S.day = today; S.done = {}; S.undo = null; changed = true; }
+  if(S.lastDone && dnum(today)-dnum(S.lastDone) > 1 && S.streak !== 0){ S.streak = 0; changed = true; }
+  return changed;
+}
+function effStreak(){
+  if(!S.lastDone) return 0;
+  return (dnum(S.day)-dnum(S.lastDone) <= 1) ? S.streak : 0;
+}
+function syncStreak(){
+  const keys = modeKeys('full');
+  const all = keys.every(k=>S.done[k]);
+  if(all && S.lastDone !== S.day){
+    S.undo = {streak:S.streak, last:S.lastDone};
+    S.streak = (S.lastDone && dnum(S.day)-dnum(S.lastDone)===1) ? S.streak+1 : 1;
+    S.lastDone = S.day;
+  }else if(!all && S.lastDone === S.day && S.undo){
+    S.streak = S.undo.streak; S.lastDone = S.undo.last; S.undo = null;
+  }
+}
+
+/* ---------- 저장 (이 기기 + 계정 동기화) ---------- */
+let dbRef = null, cloudTimer = null;
+function setSync(t){ const el=document.getElementById('syncStat'); if(el) el.textContent=t; }
+function persist(){
+  S.savedAt = Date.now();
+  try{ localStorage.setItem(KEY, JSON.stringify(S)); }catch(e){}
+  if(!dbRef) return;
+  clearTimeout(cloudTimer);
+  cloudTimer = setTimeout(async ()=>{
+    try{ await dbRef.set(JSON.parse(JSON.stringify(S))); setSync('저장: 계정 동기화됨'); }
+    catch(e){ setSync('저장: 이 기기 (동기화 실패)'); }
+  }, 800);
+}
+async function initCloud(){
+  try{
+    if(!window.claude || !claude.use) return;
+    const db = await claude.use('db');
+    const user = await claude.use('user');
+    if(!db || !user) return;
+    const id = await user.id();
+    dbRef = db.collection('data/users/'+id).doc('tracker');
+    let remote = null;
+    try{
+      const snap = await dbRef.get();
+      if(snap){
+        if(typeof snap.exists === 'boolean' && !snap.exists) remote = null;
+        else remote = (typeof snap.data === 'function') ? snap.data() : (snap.data || null);
+      }
+    }catch(e){}
+    if(remote && remote.v === 2 && (remote.savedAt||0) > (S.savedAt||0)){
+      S = Object.assign(defaults(), remote);
+      ensureDay(); syncStreak(); render();
+      try{ localStorage.setItem(KEY, JSON.stringify(S)); }catch(e){}
+      setSync('저장: 계정 동기화됨');
+    }else{
+      setSync('저장: 계정 동기화됨'); persist();
+    }
+  }catch(e){}
+}
+
+/* ---------- 렌더 ---------- */
+function esc(s){ return String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c])); }
+const DAYS=['일','월','화','수','목','금','토'];
+function render(){
+  const y = scrollY;
+  const m = S.mode;
+  const [yy,mm,dd] = S.day.split('-').map(Number);
+  const dow = DAYS[new Date(yy,mm-1,dd).getDay()];
+  document.getElementById('dateText').textContent = mm+'월 '+dd+'일 ('+dow+') 기록일';
+  document.getElementById('streakNum').textContent = effStreak();
+  ['full','warmup','exam'].forEach(k=>document.getElementById('tab-'+k).setAttribute('aria-selected', String(k===m)));
+
+  const total = modeKeys(m).length, done = countDone(m);
+  const pct = total ? Math.round(done/total*100) : 0;
+  document.getElementById('progLabel').textContent = MODE_NAME[m]+' 진행률: '+done+' / '+total+' 세트';
+  document.getElementById('progPct').textContent = pct+'%';
+  document.getElementById('progBar').style.width = pct+'%';
+  document.getElementById('banner').innerHTML = esc(MODE_TEXT[m]) + (m!=='full' ? '<em>웜업·시험 직전 체크는 연속 달성에 반영되지 않습니다. 연속 달성은 풀 루틴 완료만 셉니다.</em>' : '');
+
+  document.getElementById('cards').innerHTML = modeSteps(m).map(s=>{
+    const d = s.modes[m];
+    const n = d.sets.filter((_,i)=>S.done[sk(m,s.id,i)]).length;
+    const full = n === d.sets.length;
+    const vids = s.videos.map(v=>'<a class="vid" href="'+v.url+'" target="_blank" rel="noopener noreferrer">▶ '+esc(v.label)+'</a>').join('');
+    const sets = d.sets.map((lab,i)=>{
+      const on = !!S.done[sk(m,s.id,i)];
+      return '<button class="set" data-act="set" data-key="'+sk(m,s.id,i)+'" aria-pressed="'+on+'"><span class="box">'+(on?'<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 13l4 4L19 7"/></svg>':'')+'</span><span>'+esc(lab)+'</span></button>';
+    }).join('');
+    return '<article class="card'+(full?' done':'')+'">'+
+      '<div class="card-head"><div><span class="badge">'+s.badge+'</span><span class="sub">'+esc(s.subtitle)+'</span><h2>'+esc(s.title)+'</h2></div>'+
+      '<button class="allbtn" data-act="all" data-step="'+s.id+'">'+(full?'완료됨':'전체 체크')+' ('+n+'/'+d.sets.length+')</button></div>'+
+      '<div class="meta"><span class="chip">'+esc(d.rx)+'</span><span class="chip">'+esc(d.rest)+'</span><span class="chip rpe">'+esc(d.rpe)+'</span>'+
+      '<button class="chip timer" data-act="preset" data-sec="'+d.timer.sec+'" data-label="'+esc(d.timer.label)+'"'+(d.timer.pnf?' data-pnf="1"':'')+'>'+d.timer.sec+'초 타이머 세팅</button></div>'+
+      (d.note?'<div class="note">'+esc(d.note)+'</div>':'')+
+      '<div class="vids">'+vids+'</div>'+
+      '<div class="cues"><p><b class="cue-a">[186cm 셋업 큐]</b>'+esc(s.cue)+'</p><p><b class="cue-r">[부상 방지]</b>'+esc(s.tip)+'</p></div>'+
+      '<div class="sets">'+sets+'</div></article>';
+  }).join('');
+  document.getElementById('wakeChk').checked = !!S.wake;
+  scrollTo(0,y);
+}
+
+/* ---------- 타이머 (종료 시각 기준, 백그라운드 복귀 시 보정) ---------- */
+const T = {dur:10, label:'일반 10초', pnf:false, running:false, endAt:0, remMs:10000, last:10, id:null};
+let audio = null;
+function beep(f,d){
+  try{
+    if(!audio) audio = new (window.AudioContext||window.webkitAudioContext)();
+    if(audio.state==='suspended') audio.resume();
+    const o=audio.createOscillator(), g=audio.createGain(), t=audio.currentTime;
+    o.type='sine'; o.frequency.setValueAtTime(f,t);
+    g.gain.setValueAtTime(.18,t); g.gain.exponentialRampToValueAtTime(.001,t+d);
+    o.connect(g); g.connect(audio.destination); o.start(t); o.stop(t+d);
+  }catch(e){}
+}
+function buzz(p){ try{ if(navigator.vibrate) navigator.vibrate(p); }catch(e){} }
+function remSec(){ return T.running ? Math.max(0, Math.ceil((T.endAt-Date.now())/1000)) : Math.ceil(T.remMs/1000); }
+function drawTimer(){
+  const r = remSec();
+  document.getElementById('time').textContent = String(Math.floor(r/60)).padStart(2,'0')+':'+String(r%60).padStart(2,'0');
+  const clock = document.getElementById('clock'), ph = document.getElementById('phase');
+  let cls='clock', txt=T.label;
+  if(r===0 && !T.running && T.remMs<=0){ cls+=' fin'; txt = T.pnf ? 'PNF 1세트 완료' : '완료'; }
+  else if(T.pnf){
+    if(r>20){ cls+=' p1'; txt='① 액티브 (발 들기)'; }
+    else if(r>10){ cls+=' p2'; txt='② 등척성 (바닥 누르기)'; }
+    else { cls+=' p3'; txt='③ 패시브 (힘 빼기)'; }
+  }
+  clock.className = cls; ph.textContent = txt;
+  document.getElementById('icoPlay').style.display = T.running?'none':'';
+  document.getElementById('icoPause').style.display = T.running?'':'none';
+  document.getElementById('goBtn').classList.toggle('run', T.running);
+}
+function tick(){
+  const r = remSec(), prev = T.last;
+  if(r !== prev){
+    T.last = r;
+    if(prev - r <= 2){
+      if(T.pnf && ((prev>20 && r<=20) || (prev>10 && r<=10))){ beep(980,.2); buzz(80); }
+    }
+    if(r === 0){
+      T.running=false; T.remMs=0; clearInterval(T.id); T.id=null;
+      if(prev - r <= 2){ beep(1046,.35); setTimeout(()=>beep(1318,.35),180); buzz([120,60,120]); }
+    }
+  }
+  drawTimer();
+}
+function startTimer(){
+  if(T.running) return;
+  if(T.remMs<=0) T.remMs = T.dur*1000;
+  T.endAt = Date.now()+T.remMs; T.running=true; T.last = Math.ceil(T.remMs/1000);
+  beep(780,.1);
+  clearInterval(T.id); T.id = setInterval(tick,200);
+  requestWake(); drawTimer();
+}
+function pauseTimer(){
+  if(T.running){ T.remMs = Math.max(0,T.endAt-Date.now()); T.running=false; }
+  clearInterval(T.id); T.id=null; T.last = Math.ceil(T.remMs/1000); drawTimer();
+}
+function setPreset(sec,label,pnf){
+  pauseTimer(); T.dur=sec; T.remMs=sec*1000; T.last=sec; T.label=label; T.pnf=!!pnf; beep(660,.08); drawTimer();
+}
+
+/* ---------- 화면 켜짐 유지 ---------- */
+let wl = null;
+function wakeUI(t){ document.getElementById('wakeStat').textContent = t ? '('+t+')' : ''; }
+async function requestWake(){
+  if(!S.wake) return;
+  try{
+    if(!('wakeLock' in navigator)){ wakeUI('이 브라우저는 미지원'); return; }
+    if(wl) return;
+    wl = await navigator.wakeLock.request('screen');
+    wl.addEventListener('release',()=>{ wl=null; });
+    wakeUI('켜짐');
+  }catch(e){ wl=null; wakeUI('차단됨'); }
+}
+function releaseWake(){ try{ if(wl) wl.release(); }catch(e){} wl=null; wakeUI(''); }
+
+/* ---------- 이벤트 ---------- */
+document.addEventListener('click', e=>{
+  const el = e.target.closest('[data-act]'); if(!el) return;
+  const a = el.dataset.act;
+  if(a==='wake') return;
+  if(ensureDay()) persist();
+  if(a==='mode'){ S.mode = el.dataset.mode; persist(); render(); }
+  else if(a==='set'){
+    const k = el.dataset.key;
+    if(S.done[k]) delete S.done[k]; else S.done[k]=true;
+    syncStreak(); persist(); render(); requestWake();
+  }
+  else if(a==='all'){
+    const m=S.mode, st=STEPS.find(s=>s.id===el.dataset.step), keys=st.modes[m].sets.map((_,i)=>sk(m,st.id,i));
+    const every = keys.every(k=>S.done[k]);
+    keys.forEach(k=>{ if(every) delete S.done[k]; else S.done[k]=true; });
+    syncStreak(); persist(); render();
+  }
+  else if(a==='preset'){ setPreset(+el.dataset.sec, el.dataset.label, el.dataset.pnf==='1'); requestWake(); }
+  else if(a==='toggle'){ T.running ? pauseTimer() : startTimer(); }
+  else if(a==='resetTimer'){ pauseTimer(); T.remMs=T.dur*1000; T.last=T.dur; drawTimer(); }
+  else if(a==='askReset'){ document.getElementById('modal').hidden=false; }
+  else if(a==='cancelReset'){ document.getElementById('modal').hidden=true; }
+  else if(a==='doReset'){ S.done={}; syncStreak(); persist(); document.getElementById('modal').hidden=true; render(); }
+});
+document.getElementById('wakeChk').addEventListener('change', e=>{
+  S.wake = e.target.checked; persist();
+  if(S.wake) requestWake(); else releaseWake();
+});
+document.addEventListener('visibilitychange', ()=>{
+  if(document.visibilityState==='visible'){
+    if(ensureDay()){ persist(); render(); }
+    if(T.running) tick();
+    if(S.wake && (T.running)) { wl=null; requestWake(); }
+  }
+});
+setInterval(()=>{ if(ensureDay()){ persist(); render(); } }, 30000);
+
+/* ---------- 시작 ---------- */
+(function init(){
+  if(ensureDay()) persist();
+  syncStreak();
+  render(); drawTimer();
+  initCloud();
+  if('serviceWorker' in navigator){ navigator.serviceWorker.register('sw.js').catch(()=>{}); }
+})();
+</script>
+</body>
+</html>
