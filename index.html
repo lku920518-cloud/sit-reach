@@ -90,6 +90,11 @@ h2{font-size:16px;font-weight:900;margin-top:6px}
 .foot label{display:flex;align-items:center;gap:8px;min-height:32px}
 .foot input[type=checkbox]{width:18px;height:18px;accent-color:var(--accent)}
 .foot .row{display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap}
+.logrow{display:flex;gap:8px;margin-top:10px}
+.logrow input{min-width:0;background:var(--bg);color:var(--text);border:1px solid var(--line);border-radius:10px;padding:8px 10px;font-size:13px}
+.logrow .winp{flex:1}
+.logrow .rinp{width:84px}
+#sheetStat{font-size:12px;color:var(--muted);margin-top:8px}
 .vwrap{display:inline-flex;gap:4px;align-items:stretch}
 .vedit{border:1px solid var(--line);background:var(--surface2);color:var(--muted);border-radius:10px;padding:0 9px;font-size:12px}
 .tools{display:flex;gap:8px;margin-top:10px}
@@ -171,6 +176,11 @@ h2{font-size:16px;font-weight:900;margin-top:6px}
       <span id="syncStat">저장: 이 기기</span>
       <button class="ghost" data-act="askReset">오늘 기록 초기화</button>
     </div>
+    <div class="tools">
+      <button class="ghost" data-act="sheetUrl">시트 연결</button>
+      <button class="ghost" data-act="sendNow">지금 시트로 보내기</button>
+    </div>
+    <div id="sheetStat"></div>
     <div class="tools">
       <button class="ghost" data-act="backup">기록 백업</button>
       <button class="ghost" data-act="restore">기록 복원</button>
@@ -530,7 +540,7 @@ function dayKey(){
 }
 function dnum(k){ const p=k.split('-').map(Number); return Date.UTC(p[0],p[1]-1,p[2])/864e5; }
 function weekdayOf(k){ const p=k.split('-').map(Number); return new Date(p[0],p[1]-1,p[2]).getDay(); }
-const defaults = ()=>({v:2, day:dayKey(), done:{}, streak:0, lastDone:null, undo:null, mode:'full', section:'stretch', wday:'thu', autoRest:true, wake:true, vt:{}, savedAt:0});
+const defaults = ()=>({v:2, day:dayKey(), done:{}, streak:0, lastDone:null, undo:null, mode:'full', section:'stretch', wday:'thu', autoRest:true, wake:true, vt:{}, sent:{}, wlog:{}, wprev:{}, savedAt:0});
 let S = defaults();
 try{ const raw=localStorage.getItem(KEY); if(raw) S=Object.assign(defaults(), JSON.parse(raw)); }catch(e){}
 if(!WORKOUTS[S.wday]) S.wday = 'thu';
@@ -546,7 +556,7 @@ function countKeys(keys){ return keys.filter(k=>S.done[k]).length; }
 function ensureDay(){
   const today = dayKey();
   let changed = false;
-  if(S.day !== today){ S.day = today; S.done = {}; S.undo = null; changed = true; }
+  if(S.day !== today){ S.day = today; S.done = {}; S.undo = null; S.sent = {}; S.wlog = {}; changed = true; }
   if(S.lastDone && dnum(today)-dnum(S.lastDone) > 1 && S.streak !== 0){ S.streak = 0; changed = true; }
   return changed;
 }
@@ -705,10 +715,75 @@ function renderWorkout(){
       '<div class="card-head"><div><span class="badge">'+(exIdx===0?'WARM-UP':(exIdx)+' / '+(W.list.length-1))+'</span><span class="sub">'+esc(ex.target)+'</span><h2>'+esc(ex.name)+'</h2></div>'+
       '<button class="allbtn" data-act="wall" data-ex="'+ex.id+'">'+(full?'완료됨':'전체 체크')+' ('+n+'/'+ex.sets.length+')</button></div>'+
       '<div class="meta"><span class="chip">'+esc(ex.rx)+'</span><span class="chip">'+esc(ex.rest)+'</span><span class="chip rpe">'+esc(ex.rpe)+'</span>'+timers+'</div>'+
+      (exIdx===0 && (ex.id==='wu'||ex.id==='wuLow') ? '' : logRowHtml(ex))+
       '<div class="vids">'+vidsHtml(ex.videos)+'</div>'+
       '<div class="cues"><p><b class="cue-a">[셋업 큐]</b>'+esc(ex.cue)+'</p>'+(ex.prog?'<p><b class="cue-a">[진행 기준]</b>'+esc(ex.prog)+'</p>':'')+'<p><b class="cue-r">[흔한 에러 · 수정 큐]</b>'+esc(ex.err)+'</p></div>'+
       '<div class="sets">'+sets+'</div></article>';
   }).join('');
+}
+
+
+/* ---------- 시트 기록 (봇과 같은 Apps Script 주소로 '운동기록' 탭에 한 줄) ---------- */
+const SHEET_KEY = 'ff_sitreach_sheet';
+function sheetUrl(){ try{ return localStorage.getItem(SHEET_KEY)||''; }catch(e){ return ''; } }
+function setSheetStat(t){ const el=document.getElementById('sheetStat'); if(el) el.textContent=t; }
+function isWarm(ex){ return ex.id==='wu' || ex.id==='wuLow'; }
+function logRowHtml(ex){
+  const cur = (S.wlog && S.wlog[ex.id]) || {}, prev = (S.wprev && S.wprev[ex.id]) || {};
+  return '<div class="logrow">'+
+    '<input class="winp" data-ex="'+ex.id+'" data-f="w" value="'+esc(cur.w||'')+'" placeholder="'+esc(prev.w ? '지난번 '+prev.w : '무게·칸수 (예: 80kg)')+'" aria-label="'+esc(ex.name)+' 무게 또는 기록">'+
+    '<input class="rinp" data-ex="'+ex.id+'" data-f="r" inputmode="decimal" value="'+esc(cur.r||'')+'" placeholder="RPE" aria-label="RPE">'+
+  '</div>';
+}
+function plain(t){ return String(t).replace(/\s*\([^)]*\)/g,'').trim(); }
+function nowStr(){
+  const d=new Date(), z=n=>String(n).padStart(2,'0');
+  return d.getFullYear()+'-'+z(d.getMonth()+1)+'-'+z(d.getDate())+' '+z(d.getHours())+':'+z(d.getMinutes())+':'+z(d.getSeconds());
+}
+function workoutRow(day){
+  const W = WORKOUTS[day], parts = [];
+  W.list.forEach(ex=>{
+    if(isWarm(ex)) return;
+    const n = ex.sets.filter((_,i)=>S.done[wk(day,ex.id,i)]).length;
+    if(!n) return;
+    const l = (S.wlog && S.wlog[ex.id]) || {};
+    const vol = (n===ex.sets.length) ? plain(ex.rx) : n+'세트 완료';
+    parts.push(plain(ex.name)+(l.w?' '+l.w:'')+' '+vol+(l.r?' (RPE '+l.r+')':''));
+  });
+  return { date:S.day, weekday:DAYS[weekdayOf(S.day)], kind:'근력', name:W.label, content:parts.join(' / '),
+    pace:'', hr:'', cadence:'', rpe:'', memo:'앱 자동 기록' };
+}
+function stretchRow(){
+  return { date:S.day, weekday:DAYS[weekdayOf(S.day)], kind:'스트레칭', name:'좌전굴 풀 루틴',
+    content:'풀 루틴(취침 전 15분) 전 세트 완료', pace:'', hr:'', cadence:'', rpe:'', memo:'앱 자동 기록' };
+}
+async function postRow(row){
+  const url = sheetUrl();
+  if(!url){ setSheetStat('시트 주소가 없어 보내지 않았습니다. "시트 연결"에서 한 번 붙여넣으세요.'); return false; }
+  const payload = { target:'exercise', rows:[row], items:[{ datetime:nowStr(), category:'운동', content:row.name+': '+row.content, calories:0, protein:0, feedback:'' }] };
+  try{
+    await fetch(url, { method:'POST', mode:'no-cors', headers:{'Content-Type':'text/plain;charset=utf-8'}, body:JSON.stringify(payload) });
+    const d=new Date();
+    setSheetStat('시트로 전송함 '+String(d.getHours()).padStart(2,'0')+':'+String(d.getMinutes()).padStart(2,'0')+' ('+row.kind+'). 들어갔는지는 시트에서 확인하세요.');
+    return true;
+  }catch(e){ setSheetStat('전송 실패 (네트워크). 다시 시도하려면 "지금 시트로 보내기"를 누르세요.'); return false; }
+}
+async function maybeSend(){
+  if(S.section==='workout'){
+    const day=S.wday, keys=workoutKeys(day), id='w|'+day;
+    if(keys.every(k=>S.done[k]) && !S.sent[id]){
+      const row=workoutRow(day);
+      if(await postRow(row)){
+        S.sent[id]=true; S.wprev = S.wprev || {};
+        WORKOUTS[day].list.forEach(ex=>{ const l=S.wlog && S.wlog[ex.id]; if(l && (l.w||l.r)) S.wprev[ex.id]={w:l.w||'', r:l.r||''}; });
+        persist();
+      }
+    }
+  }else{
+    if(modeKeys('full').every(k=>S.done[k]) && !S.sent.s){
+      if(await postRow(stretchRow())){ S.sent.s=true; persist(); }
+    }
+  }
 }
 
 /* ---------- 타이머 (종료 시각 기준, 백그라운드 복귀 시 보정) ---------- */
@@ -798,13 +873,13 @@ document.addEventListener('click', e=>{
   else if(a==='set'){
     const k = el.dataset.key;
     if(S.done[k]) delete S.done[k]; else S.done[k]=true;
-    syncStreak(); persist(); render(); requestWake();
+    syncStreak(); persist(); render(); requestWake(); maybeSend();
   }
   else if(a==='wset'){
     const k = el.dataset.key, rest = +el.dataset.rest || 0;
     const nowOn = !S.done[k];
     if(nowOn) S.done[k]=true; else delete S.done[k];
-    persist(); render(); requestWake();
+    persist(); render(); requestWake(); maybeSend();
     if(nowOn && S.autoRest && rest>0 && el.dataset.skip!=='1'){
       setPreset(rest, '휴식 '+rest+'초', false); startTimer();
     }
@@ -813,17 +888,35 @@ document.addEventListener('click', e=>{
     const m=S.mode, st=STEPS.find(s=>s.id===el.dataset.step), keys=st.modes[m].sets.map((_,i)=>sk(m,st.id,i));
     const every = keys.every(k=>S.done[k]);
     keys.forEach(k=>{ if(every) delete S.done[k]; else S.done[k]=true; });
-    syncStreak(); persist(); render();
+    syncStreak(); persist(); render(); maybeSend();
   }
   else if(a==='wall'){
     const day=S.wday, ex=WORKOUTS[day].list.find(x=>x.id===el.dataset.ex), keys=ex.sets.map((_,i)=>wk(day,ex.id,i));
     const every = keys.every(k=>S.done[k]);
     keys.forEach(k=>{ if(every) delete S.done[k]; else S.done[k]=true; });
-    persist(); render();
+    persist(); render(); maybeSend();
   }
   else if(a==='preset'){ setPreset(+el.dataset.sec, el.dataset.label, el.dataset.pnf==='1'); beep(660,.08); requestWake(); }
   else if(a==='toggle'){ T.running ? pauseTimer() : startTimer(); }
   else if(a==='resetTimer'){ pauseTimer(); T.remMs=T.dur*1000; T.last=T.dur; drawTimer(); }
+  else if(a==='sheetUrl'){
+    const cur = sheetUrl();
+    const r = prompt('봇이 쓰는 시트 주소(Apps Script 웹앱 URL, MY_SHEET_URL 값)를 붙여넣으세요. 비우면 연결을 해제합니다. 이 주소는 이 기기에만 저장되고 백업에는 들어가지 않습니다.', cur);
+    if(r===null) return;
+    const u = r.trim();
+    if(!u){ try{ localStorage.removeItem(SHEET_KEY); }catch(e){} setSheetStat('시트 연결 해제됨'); return; }
+    if(u.indexOf('https://script.google.com/')!==0){ alert('https://script.google.com/ 으로 시작하는 주소여야 합니다.'); return; }
+    try{ localStorage.setItem(SHEET_KEY, u); setSheetStat('시트 연결됨. 전체 체크를 마치면 자동으로 한 줄 기록합니다.'); }catch(e){ setSheetStat('주소를 저장하지 못했습니다.'); }
+  }
+  else if(a==='sendNow'){
+    if(S.section==='workout'){
+      const row = workoutRow(S.wday);
+      if(!row.content){ setSheetStat('체크한 세트가 없어 보내지 않았습니다.'); return; }
+      postRow(row).then(ok=>{ if(ok){ S.sent['w|'+S.wday]=true; persist(); } });
+    }else{
+      postRow(stretchRow()).then(ok=>{ if(ok){ S.sent.s=true; persist(); } });
+    }
+  }
   else if(a==='vtedit'){
     const k = el.dataset.vk, cur = (S.vt && S.vt[k]!=null) ? fmtT(S.vt[k]) : '';
     const r = prompt('이 영상의 자세 시작 시각 (예: 3:15 또는 195). 비우면 기본값으로 되돌립니다.', cur);
@@ -867,7 +960,15 @@ document.addEventListener('click', e=>{
   }
   else if(a==='askReset'){ document.getElementById('modal').hidden=false; }
   else if(a==='cancelReset'){ document.getElementById('modal').hidden=true; }
-  else if(a==='doReset'){ S.done={}; syncStreak(); persist(); document.getElementById('modal').hidden=true; render(); }
+  else if(a==='doReset'){ S.done={}; S.sent={}; S.wlog={}; syncStreak(); persist(); document.getElementById('modal').hidden=true; render(); }
+});
+document.getElementById('cards').addEventListener('input', e=>{
+  const t = e.target;
+  if(!t.classList || !(t.classList.contains('winp')||t.classList.contains('rinp'))) return;
+  S.wlog = S.wlog || {};
+  const o = S.wlog[t.dataset.ex] = S.wlog[t.dataset.ex] || {};
+  o[t.dataset.f] = t.value.trim();
+  persist();
 });
 document.getElementById('wakeChk').addEventListener('change', e=>{
   S.wake = e.target.checked; persist();
