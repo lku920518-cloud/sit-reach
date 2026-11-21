@@ -90,6 +90,11 @@ h2{font-size:16px;font-weight:900;margin-top:6px}
 .foot label{display:flex;align-items:center;gap:8px;min-height:32px}
 .foot input[type=checkbox]{width:18px;height:18px;accent-color:var(--accent)}
 .foot .row{display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap}
+.vwrap{display:inline-flex;gap:4px;align-items:stretch}
+.vedit{border:1px solid var(--line);background:var(--surface2);color:var(--muted);border-radius:10px;padding:0 9px;font-size:12px}
+.tools{display:flex;gap:8px;margin-top:10px}
+.tools button{flex:1}
+.dlg textarea{width:100%;height:120px;margin-top:10px;background:var(--bg);color:var(--text);border:1px solid var(--line);border-radius:10px;padding:8px;font-size:11px}
 .ghost{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:8px 14px;font-weight:700;color:#cdd5e2}
 .ghost:hover{border-color:var(--hot);color:#f4a6a6}
 
@@ -166,6 +171,10 @@ h2{font-size:16px;font-weight:900;margin-top:6px}
       <span id="syncStat">저장: 이 기기</span>
       <button class="ghost" data-act="askReset">오늘 기록 초기화</button>
     </div>
+    <div class="tools">
+      <button class="ghost" data-act="backup">기록 백업</button>
+      <button class="ghost" data-act="restore">기록 복원</button>
+    </div>
     <p>하루 기준은 새벽 4시입니다. 자정을 넘겨 운동해도 같은 날로 기록됩니다. 영상 속 큐와 이 앱의 큐가 다르면 앱의 큐(본인 조건 기준)를 따르세요. iOS는 무음 스위치가 켜져 있으면 비프음이 나지 않을 수 있습니다.</p>
   </div>
 </main>
@@ -174,14 +183,16 @@ h2{font-size:16px;font-weight:900;margin-top:6px}
   <div class="wrap tb">
     <div class="clock" id="clock"><div class="phase" id="phase">타이머 대기</div><div class="time" id="time">00:10</div></div>
     <div class="presets">
-      <button class="pre" data-act="preset" data-sec="10" data-label="일반 10초">10초</button>
-      <button class="pre" data-act="preset" data-sec="15" data-label="휴식 15초">15초</button>
-      <button class="pre" data-act="preset" data-sec="20" data-label="홀드 20초">20초</button>
-      <button class="pre pnf" data-act="preset" data-sec="30" data-label="PNF 3단계" data-pnf="1">PNF 30초</button>
-      <button class="pre" data-act="preset" data-sec="45" data-label="휴식 45초">45초</button>
-      <button class="pre" data-act="preset" data-sec="60" data-label="휴식 60초">60초</button>
-      <button class="pre" data-act="preset" data-sec="90" data-label="휴식 90초">90초</button>
-      <button class="pre" data-act="preset" data-sec="120" data-label="휴식 2분">2분</button>
+      <button class="pre" data-grp="s" data-act="preset" data-sec="10" data-label="일반 10초">10초</button>
+      <button class="pre" data-grp="s" data-act="preset" data-sec="15" data-label="휴식 15초">15초</button>
+      <button class="pre" data-grp="s" data-act="preset" data-sec="20" data-label="홀드 20초">20초</button>
+      <button class="pre pnf" data-grp="s" data-act="preset" data-sec="30" data-label="PNF 3단계" data-pnf="1">PNF 30초</button>
+      <button class="pre" data-grp="w" data-act="preset" data-sec="30" data-label="30초">30초</button>
+      <button class="pre" data-grp="w" data-act="preset" data-sec="45" data-label="휴식 45초">45초</button>
+      <button class="pre" data-grp="w" data-act="preset" data-sec="60" data-label="휴식 60초">60초</button>
+      <button class="pre" data-grp="w" data-act="preset" data-sec="90" data-label="휴식 90초">90초</button>
+      <button class="pre" data-grp="w" data-act="preset" data-sec="120" data-label="휴식 2분">2분</button>
+      <button class="pre" data-grp="w" data-act="preset" data-sec="180" data-label="휴식 3분">3분</button>
     </div>
     <div class="ctrl">
       <button class="cbtn go" id="goBtn" data-act="toggle" aria-label="시작 또는 일시정지">
@@ -200,6 +211,15 @@ h2{font-size:16px;font-weight:900;margin-top:6px}
     <h3 id="mTitle">오늘 세트 기록을 초기화할까요?</h3>
     <p>스트레칭과 근력 운동의 모든 체크가 해제됩니다. 오늘 풀 루틴 완료로 올라간 연속 일수도 함께 되돌려집니다.</p>
     <div class="acts"><button data-act="cancelReset">취소</button><button class="danger" data-act="doReset">초기화</button></div>
+  </div>
+</div>
+
+<div class="modal" id="dataModal" hidden role="dialog" aria-modal="true" aria-labelledby="dTitle">
+  <div class="dlg">
+    <h3 id="dTitle">기록 백업</h3>
+    <p id="dDesc"></p>
+    <textarea id="dText" spellcheck="false"></textarea>
+    <div class="acts"><button data-act="closeData">닫기</button><button class="danger" id="dGo" data-act="dataGo">복사</button></div>
   </div>
 </div>
 
@@ -230,7 +250,7 @@ const STEPS = [
   },
   {
     id:'2', badge:'STEP 2', title:'다운독 무릎 교차 굽혔다 펴기', subtitle:'햄스트링 근복 신장 · 흉추/광배근 이완',
-    videos:[{label:'Master Choi 9분 스트레칭 (01:44 ~ 02:20)', url:'https://www.youtube.com/watch?v=5ZR8VVNZIvg&t=104s'}],
+    videos:[{label:'듀잇 무릎 굽혀 배-허벅지 밀착 (04:55~)', url:'https://www.youtube.com/watch?v=LHhNEvRCviI&t=295s'}],
     cue:'무릎을 먼저 충분히 굽혀 아랫배와 허벅지 앞면을 밀착시킨 뒤 시작. 복부와 허벅지가 떨어지지 않는 선까지만 한쪽 뒤꿈치씩 바닥으로 내리기. 귀는 팔 사이에 두고 턱을 당기거나 들지 않는 중립 목.',
     tip:'뒤꿈치가 바닥에 닿지 않아도 정상입니다. 무릎부터 펴면 요추가 둥글게 말려 디스크 압력이 올라갑니다. 손목(전완) 통증이 있으면 주먹 지지, 덤벨 핸들 지지, 팔뚝 지지로 바꾸세요.',
     modes:{ full:{ rx:'좌우 교차 10회 (편측 5회, 뒤꿈치 누를 때 2초 유지) × 2세트', rest:'휴식 20초', rpe:'RPE 5~6',
@@ -296,7 +316,7 @@ const EX = {
     err:'상체를 일으키며 반동 → 무게를 낮추고 상체 각도를 고정. 어깨가 올라가며 목이 앞으로 → 시선 고정, 어깨를 내리고 시작. 요추가 말림 → 각도와 가동범위를 줄입니다. 악력이 먼저 풀림 → 그 세트에서 종료(전완건염 이력).',
     sets:['1세트 8~10회','2세트 8~10회','3세트 8~10회','4세트 8~10회','5세트 8~10회'],
     videos:[
-      {label:'바벨로우 기본 세팅 (자세 설명)', url:'https://www.youtube.com/watch?v=mi55EK35xfk'},
+      {label:'바벨로우 기본 세팅 (자세 설명)', url:'https://www.youtube.com/watch?v=mi55EK35xfk&t=40s'},
       {label:'언더그립 바벨 로우 3분 레슨', url:'https://www.youtube.com/watch?v=2vp47pQTziE'}
     ]
   },
@@ -506,11 +526,12 @@ function dayKey(){
 }
 function dnum(k){ const p=k.split('-').map(Number); return Date.UTC(p[0],p[1]-1,p[2])/864e5; }
 function weekdayOf(k){ const p=k.split('-').map(Number); return new Date(p[0],p[1]-1,p[2]).getDay(); }
-const defaults = ()=>({v:2, day:dayKey(), done:{}, streak:0, lastDone:null, undo:null, mode:'full', section:'stretch', wday:'thu', autoRest:true, wake:true, savedAt:0});
+const defaults = ()=>({v:2, day:dayKey(), done:{}, streak:0, lastDone:null, undo:null, mode:'full', section:'stretch', wday:'thu', autoRest:true, wake:true, vt:{}, savedAt:0});
 let S = defaults();
 try{ const raw=localStorage.getItem(KEY); if(raw) S=Object.assign(defaults(), JSON.parse(raw)); }catch(e){}
 if(!WORKOUTS[S.wday]) S.wday = 'thu';
 
+let dataMode = 'backup';
 const sk = (m,id,i)=>m+'|'+id+'|'+i;
 const wk = (day,id,i)=>'w|'+day+'|'+id+'|'+i;
 function modeSteps(m){ return STEPS.filter(s=>s.modes[m]); }
@@ -585,7 +606,22 @@ async function initCloud(){
 function esc(s){ return String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c])); }
 const DAYS=['일','월','화','수','목','금','토'];
 function checkSvg(){ return '<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 13l4 4L19 7"/></svg>'; }
-function vidsHtml(list){ return list.map(v=>'<a class="vid" href="'+v.url+'" target="_blank" rel="noopener noreferrer">▶ '+esc(v.label)+'</a>').join(''); }
+function vBase(u){ return u.replace(/([?&])t=\d+s?(&|$)/,function(m,a,b){ return b? a : ''; }).replace(/[?&]$/,''); }
+function vStart(v){
+  const base = vBase(v.url);
+  if(S.vt && S.vt[base]!=null) return S.vt[base];
+  if(v.t!=null) return v.t;
+  const m = v.url.match(/[?&]t=(\d+)/); return m ? +m[1] : 0;
+}
+function fmtT(t){ return Math.floor(t/60)+':'+String(t%60).padStart(2,'0'); }
+function vidsHtml(list){
+  return list.map(v=>{
+    const base = vBase(v.url), t = vStart(v);
+    const href = t>0 ? base+(base.indexOf('?')<0?'?':'&')+'t='+t+'s' : base;
+    return '<span class="vwrap"><a class="vid" href="'+href+'" target="_blank" rel="noopener noreferrer">▶ '+esc(v.label)+(t>0?' ('+fmtT(t)+'부터)':'')+'</a>'+
+      '<button class="vedit" data-act="vtedit" data-vk="'+esc(base)+'" aria-label="시작 시각 수정">✎</button></span>';
+  }).join('');
+}
 
 function render(){
   const y = scrollY;
@@ -600,6 +636,7 @@ function render(){
   document.getElementById('stretchTabs').hidden = work;
   document.getElementById('workoutTabs').hidden = !work;
   document.getElementById('autoRestRow').hidden = !work;
+  document.querySelectorAll('.pre[data-grp]').forEach(b=>{ b.hidden = (b.dataset.grp==='w') !== work; });
   document.getElementById('autoRestChk').checked = !!S.autoRest;
   document.getElementById('wakeChk').checked = !!S.wake;
   if(work) renderWorkout(); else renderStretch();
@@ -782,6 +819,47 @@ document.addEventListener('click', e=>{
   else if(a==='preset'){ setPreset(+el.dataset.sec, el.dataset.label, el.dataset.pnf==='1'); beep(660,.08); requestWake(); }
   else if(a==='toggle'){ T.running ? pauseTimer() : startTimer(); }
   else if(a==='resetTimer'){ pauseTimer(); T.remMs=T.dur*1000; T.last=T.dur; drawTimer(); }
+  else if(a==='vtedit'){
+    const k = el.dataset.vk, cur = (S.vt && S.vt[k]!=null) ? fmtT(S.vt[k]) : '';
+    const r = prompt('이 영상의 자세 시작 시각 (예: 3:15 또는 195). 비우면 기본값으로 되돌립니다.', cur);
+    if(r===null) return;
+    S.vt = S.vt || {};
+    const t = r.trim();
+    if(!t){ delete S.vt[k]; }
+    else{
+      const m = t.match(/^(\d+):(\d{1,2})$/), n = /^\d+$/.test(t) ? +t : (m ? (+m[1])*60+(+m[2]) : NaN);
+      if(isNaN(n)){ alert('3:15 또는 195 형식으로 입력하세요.'); return; }
+      S.vt[k] = n;
+    }
+    persist(); render();
+  }
+  else if(a==='backup' || a==='restore'){
+    dataMode = a;
+    const ta = document.getElementById('dText'), go = document.getElementById('dGo');
+    document.getElementById('dTitle').textContent = a==='backup' ? '기록 백업' : '기록 복원';
+    document.getElementById('dDesc').textContent = a==='backup' ? '아래 텍스트를 복사해 메모장이나 텔레그램에 보관하세요. 연속 일수, 오늘 체크, 영상 시작 시각이 들어 있습니다.' : '백업해 둔 텍스트 전체를 붙여넣고 복원을 누르세요. 현재 기록이 덮어써집니다.';
+    ta.value = a==='backup' ? JSON.stringify(S) : '';
+    ta.readOnly = a==='backup';
+    go.textContent = a==='backup' ? '복사' : '복원';
+    document.getElementById('dataModal').hidden = false;
+  }
+  else if(a==='closeData'){ document.getElementById('dataModal').hidden = true; }
+  else if(a==='dataGo'){
+    const ta = document.getElementById('dText');
+    if(dataMode==='backup'){
+      ta.select();
+      (navigator.clipboard ? navigator.clipboard.writeText(ta.value) : Promise.reject()).then(()=>{ el.textContent='복사됨'; }).catch(()=>{ try{ document.execCommand('copy'); el.textContent='복사됨'; }catch(e){} });
+    }else{
+      try{
+        const o = JSON.parse(ta.value.trim());
+        if(!o || typeof o!=='object' || typeof o.streak!=='number' || typeof o.done!=='object') throw 0;
+        S = Object.assign(defaults(), o);
+        if(!WORKOUTS[S.wday]) S.wday = 'thu';
+        ensureDay(); persist(); render();
+        document.getElementById('dataModal').hidden = true;
+      }catch(e){ alert('올바른 백업 텍스트가 아닙니다. 전체를 정확히 붙여넣어 주세요.'); }
+    }
+  }
   else if(a==='askReset'){ document.getElementById('modal').hidden=false; }
   else if(a==='cancelReset'){ document.getElementById('modal').hidden=true; }
   else if(a==='doReset'){ S.done={}; syncStreak(); persist(); document.getElementById('modal').hidden=true; render(); }
