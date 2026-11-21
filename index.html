@@ -129,7 +129,7 @@ h2{font-size:16px;font-weight:900;margin-top:6px}
   <div class="wrap">
     <div class="top-row">
       <div>
-        <div><span class="kicker">186CM 장신 프로토콜</span><span class="date" id="dateText"></span></div>
+        <div><span class="kicker">운동 루틴 트래커</span><span class="date" id="dateText"></span></div>
         <h1 id="title">좌전굴 끝범위 · 신경 가동성</h1>
       </div>
       <div class="streak" id="streakBox"><small>연속 달성</small><b><span id="streakNum">0</span>일째</b></div>
@@ -147,7 +147,8 @@ h2{font-size:16px;font-weight:900;margin-top:6px}
       <button class="tab" role="tab" data-act="mode" data-mode="warmup" id="tab-warmup">훈련 전 웜업<br>2분</button>
       <button class="tab" role="tab" data-act="mode" data-mode="exam" id="tab-exam">시험 직전 대기<br>2분</button>
     </div>
-    <div class="tabs two" id="workoutTabs" role="tablist" aria-label="운동 요일" hidden>
+    <div class="tabs" id="workoutTabs" role="tablist" aria-label="운동 요일" hidden>
+      <button class="tab" role="tab" data-act="wday" data-day="tue" id="wd-tue">화 · 하체 + 점프</button>
       <button class="tab" role="tab" data-act="wday" data-day="thu" id="wd-thu">목 · 당기기 + 푸시업</button>
       <button class="tab" role="tab" data-act="wday" data-day="sat" id="wd-sat">토 · 상체 + 코어</button>
     </div>
@@ -414,9 +415,79 @@ const EX = {
     err:'골반이 처짐 → 높이를 낮추거나 무릎을 대고 시작. 어깨가 올라감 → 어깨를 내리고 팔꿈치로 바닥 밀기. 몸이 앞뒤로 말림 → 가슴을 열고 엉덩이 조이기.',
     sets:['좌측 1세트 (30초)','우측 1세트 (30초)','좌측 2세트 (30초)','우측 2세트 (30초)'],
     videos:[{label:'사이드 플랭크 자세 (측면 코어)', url:'https://www.youtube.com/watch?v=vm2GEpNL7NU'}]
+  },
+  /* ----- 화요일 (하체) : 시트 '운동계획' 탭 기준 ----- */
+  wuLow:{
+    id:'wuLow', name:'하체 워밍업 5분', target:'둔근 · 햄스트링 · 발목 · 고관절 준비',
+    rx:'글루트 브릿지 10회 → 맨몸 힙힌지 10회 → 레그스윙 10회/측 → 발목 모빌리티 10회/측 → 가벼운 점프 3회', rest:'동작 사이 쉬지 않음', rpe:'RPE 3~4', restSec:0,
+    cue:'힙힌지는 막대를 등에 대고 머리·등·엉덩이 3점 접촉을 유지하며 무릎을 살짝 굽혀 엉덩이를 뒤로 뺍니다. 목은 중립(턱 살짝 당김). 레그스윙은 허리를 젖히지 말고 골반을 고정합니다.',
+    err:'브릿지에서 허리를 과하게 젖힘 → 갈비뼈를 내리고 엉덩이로만 올립니다. 힌지에서 요추가 말림 → 가동범위를 줄이고 무릎을 더 굽힙니다. 아킬레스·무릎에 뻣뻣함이 있으면 점프는 생략하고 발목 모빌리티를 늘립니다.',
+    sets:['글루트 브릿지 10회','맨몸 힙힌지 10회','레그스윙 10회/측','발목 모빌리티 10회/측','가벼운 점프 3회'],
+    videos:[]
+  },
+  broad:{
+    id:'broad', name:'브로드점프 (제자리멀리뛰기)', target:'폭발적 하체 파워 · 팔 스윙 협응 · 착지 제어',
+    rx:'3회 × 4세트', rest:'휴식 2분', restSec:120, rpe:'RPE 7 (최대 시도 아님)',
+    prog:'데크 1칸 13.94cm (8칸 111.5cm 실측). 최고 15칸(약 209cm) → 1차 목표 16칸(약 223cm, 1점) → 최종 18칸(약 251cm, 7점). 매 시도 칸 수를 기록하세요.',
+    cue:'발은 골반 너비, 팔을 뒤로 크게 보냈다가 앞으로 스윙하며 45° 앞쪽으로 도약합니다. 186cm는 하강 깊이를 무릎 약 90° 이내로 두고 상체를 과하게 숙이지 않습니다. 착지 직전 발뒤꿈치를 앞으로 내밀고, 착지 시 무릎을 굽혀 충격을 흡수한 뒤 엉덩이를 뒤로 보냅니다. 시선은 앞쪽 바닥, 목은 중립을 유지합니다.',
+    err:'착지에서 무릎이 안쪽으로 모임 → 무릎을 발끝 방향으로 유지하고 거리를 줄입니다. 팔 스윙이 작음 → 뒤로 보낸 팔을 먼저 만들고 도약합니다. 착지에서 상체가 앞으로 쏠려 손을 짚음 → 발뒤꿈치 착지 타이밍을 늦추고 엉덩이를 뒤로 보냅니다. 아킬레스·무릎 통증이 있으면 즉시 종료합니다.',
+    sets:['1세트 (3회)','2세트 (3회)','3세트 (3회)','4세트 (3회)'],
+    videos:[
+      {label:'제자리멀리뛰기 팔스윙편', url:'https://www.youtube.com/watch?v=41RTCFeprVE'},
+      {label:'제자리 멀리뛰기 잘하는법 (자세와 연습방법)', url:'https://www.youtube.com/watch?v=nHXr6jaDp3o'}
+    ]
+  },
+  dl:{
+    id:'dl', name:'컨벤셔널 데드리프트', target:'둔근 · 햄스트링 · 척추기립근(등척성) · 광배근',
+    rx:'5회 × 3세트', rest:'휴식 3분', restSec:180, rpe:'RPE 7',
+    prog:'11/24 80kg → 12/1 85 → 12/8 70(회복) → 12/15 90 → 이후 +2.5kg. 무게는 한 번에 하나만 올립니다.',
+    cue:'골반 너비 스탠스, 바는 정강이 중앙(발 중앙 위). 186cm는 엉덩이가 높게 시작되니 상체 약 40~45°에서 시작하고, 요추 중립이 안 되면 바 시작 높이를 올립니다. 숨을 들이마셔 복압을 잡고 광배로 바를 몸에 붙이며, 바닥을 밀듯이 일어납니다. 시선은 2~3m 앞 바닥, 턱 살짝 당김(목 중립). 상단에서 허리를 젖히지 말고 엉덩이를 조여 마무리합니다.',
+    err:'바가 몸에서 멀어짐 → 바를 정강이에 스치듯 올리고 광배에 힘을 줍니다. 엉덩이가 먼저 올라감 → 가슴과 엉덩이를 같이 올립니다. 시선을 위로 들어 목이 꺾임 → 시선을 바닥 2~3m 앞에 고정합니다. 요추가 말리거나 꺾임 → 세트 종료, 무게를 낮춥니다. 악력이 먼저 풀림 → 그 세트에서 종료(전완건염 이력).',
+    sets:['1세트 (5회)','2세트 (5회)','3세트 (5회)'],
+    videos:[
+      {label:'완벽한 데드리프트 강의 (요추중립 · 웨징)', url:'https://www.youtube.com/watch?v=BhF7zX8PClw'},
+      {label:'컨벤셔널 데드리프트 자세 완벽 강의', url:'https://www.youtube.com/watch?v=2GCGtmP6z8g'}
+    ]
+  },
+  rackpull:{
+    id:'rackpull', name:'랙풀 (무릎 높이)', target:'둔근 · 햄스트링 · 상부 등 · 악력',
+    rx:'5회 × 3세트', rest:'휴식 3분', restSec:180, rpe:'RPE 7',
+    prog:'11/17 80kg RPE7 → 11/24 85 → 12/1 90 → 12/8 75(회복) → 12/15 95 → 이후 RPE 7 이하일 때만 +5kg. 2~3주 뒤 핀을 한 칸 위로 올립니다.',
+    cue:'핀 높이는 무릎 높이. 바는 정강이에 붙이고 광배로 바를 당겨 몸에 붙인 채 시작합니다. 요추 중립, 시선 2~3m 앞 바닥, 턱 살짝 당김. 일어나며 엉덩이를 앞으로 밀고, 상단에서 핀 위 1초 정지 후 내립니다. 어깨를 으쓱하지 않고 견갑은 아래로 둡니다.',
+    err:'반동으로 당김 → 핀 위에서 바를 완전히 멈춘 뒤 다음 반복. 어깨를 으쓱해 목에 힘이 들어감 → 어깨를 귀에서 멀리 내리고 시작. 상단에서 허리를 젖힘 → 엉덩이를 조여 일직선으로 마무리. 악력이 먼저 풀림 → 세트 종료.',
+    sets:['1세트 (5회)','2세트 (5회)','3세트 (5회)'],
+    videos:[
+      {label:'How To Do Rack Pulls', url:'https://www.youtube.com/watch?v=Y99s0dNWpUw'},
+      {label:'Above-The-Knee Rack Pull', url:'https://www.youtube.com/watch?v=zaxoaasC320'}
+    ]
+  },
+  bss:{
+    id:'bss', name:'불가리안 스플릿 스쿼트 (맨몸)', target:'대퇴사두 · 둔근 · 한쪽 다리 균형',
+    rx:'다리당 8~10회 × 3세트', rest:'휴식 90초', restSec:90, rpe:'RPE 6~7',
+    cue:'뒤쪽 발등을 벤치에 올리고, 앞발은 벤치에서 약 2보 앞에 둡니다. 186cm는 간격을 더 넓게 잡아 앞무릎이 발끝 선을 크게 넘지 않게 합니다. 상체는 살짝 숙여 둔근을 쓰고, 앞무릎은 두 번째 발가락 방향으로 보냅니다. 내려갈 때 2초, 앞발 전체로 눌러 올라옵니다. 시선은 정면 바닥 쪽, 목은 중립.',
+    err:'앞무릎이 안으로 모임 → 무릎을 발끝 방향으로 밀고 간격을 조정. 몸통이 한쪽으로 흔들림 → 가동범위를 줄이고 벽·랙을 가볍게 잡습니다. 앞무릎 통증 → 앞발 간격을 넓히거나 깊이를 줄입니다. 허벅지 통증이 있으면 이 종목은 제외합니다(시트 기준).',
+    sets:['1세트 (좌우 8~10회)','2세트 (좌우 8~10회)','3세트 (좌우 8~10회)'],
+    videos:[
+      {label:'불가리안 스플릿 스쿼트 정확한 자세 (무릎 보호)', url:'https://www.youtube.com/watch?v=WYlyn5cxpBE'},
+      {label:'불가리안 스플릿 스쿼트 맨몸 하체 운동', url:'https://www.youtube.com/watch?v=oLOdZyE6KCI'}
+    ]
+  },
+  calf:{
+    id:'calf', name:'한쪽 카프레이즈', target:'종아리(비복근 · 가자미근) · 아킬레스건 부하 적응',
+    rx:'다리당 12회 × 3세트 (내릴 때 3초)', rest:'휴식 60초', restSec:60, rpe:'RPE 6',
+    cue:'계단이나 플레이트 끝에 앞발바닥만 올리고 한 손은 벽을 가볍게 잡습니다. 두 발로 올라가 한 발로 3초간 천천히 내립니다. 무릎은 편 채, 발목이 안쪽·바깥쪽으로 꺾이지 않게 일직선으로 올립니다.',
+    err:'바닥에서 튕겨 올라감 → 가장 아래에서 1초 멈춘 뒤 올립니다. 내리는 속도가 빨라짐 → 3초를 세며 내립니다. 아킬레스건 통증(찌르는 느낌) → 즉시 중단하고 가동범위를 줄입니다.',
+    sets:['1세트 (좌우 12회)','2세트 (좌우 12회)','3세트 (좌우 12회)'],
+    videos:[
+      {label:'Eccentric Single Leg Calf Raises', url:'https://www.youtube.com/watch?v=SkjBXwZLBx8'},
+      {label:'Eccentric SL Calf Raise (쇼츠)', url:'https://www.youtube.com/shorts/V7Zqv4GjaQ0'}
+    ]
   }
 };
 const WORKOUTS = {
+  tue:{ label:'화 · 하체 + 점프', title:'근력 운동 · 화요일',
+    text:'브로드점프 → 데드리프트 → 랙풀 → 불가리안 스플릿 스쿼트 → 카프레이즈 순서입니다. 운동 30~60분 전 콜라겐 10~15g, 30분 전 물 300ml. 모든 근력 운동은 RPE 7까지만, 목에서 팔로 저림·처음 겪는 두통·가슴 답답함이 있으면 즉시 중단합니다.',
+    list:[EX.wuLow, EX.broad, EX.dl, EX.rackpull, EX.bss, EX.calf] },
   thu:{ label:'목 · 당기기 + 푸시업', title:'근력 운동 · 목요일',
     text:'당기기와 푸시업 중심입니다. 세트를 체크하면 휴식 타이머가 자동으로 시작합니다. 워밍업은 토요일과 같은 구성입니다.',
     list:[WARMUP, EX.row, EX.pullThu, EX.sarmThu, EX.face, EX.yraise, EX.pushup] },
@@ -563,18 +634,18 @@ function renderStretch(){
       '<button class="chip timer" data-act="preset" data-sec="'+d.timer.sec+'" data-label="'+esc(d.timer.label)+'"'+(d.timer.pnf?' data-pnf="1"':'')+'>'+d.timer.sec+'초 타이머 세팅</button></div>'+
       (d.note?'<div class="note">'+esc(d.note)+'</div>':'')+
       (s.videos.length?'<div class="vids">'+vidsHtml(s.videos)+'</div>':'')+
-      '<div class="cues"><p><b class="cue-a">[186cm 셋업 큐]</b>'+esc(s.cue)+'</p><p><b class="cue-r">[부상 방지]</b>'+esc(s.tip)+'</p></div>'+
+      '<div class="cues"><p><b class="cue-a">[셋업 큐]</b>'+esc(s.cue)+'</p><p><b class="cue-r">[부상 방지]</b>'+esc(s.tip)+'</p></div>'+
       '<div class="sets">'+sets+'</div></article>';
   }).join('');
 }
 function renderWorkout(){
   const day = S.wday, W = WORKOUTS[day];
   document.getElementById('title').textContent = W.title;
-  ['thu','sat'].forEach(k=>document.getElementById('wd-'+k).setAttribute('aria-selected', String(k===day)));
+  ['tue','thu','sat'].forEach(k=>document.getElementById('wd-'+k).setAttribute('aria-selected', String(k===day)));
   const keys = workoutKeys(day);
   setProgress('오늘 운동 진행률', countKeys(keys), keys.length);
   const todayDow = weekdayOf(S.day);
-  const hint = ((todayDow===4 && day!=='thu') || (todayDow===6 && day!=='sat')) ? '<em>오늘 요일과 다른 루틴을 보고 있습니다.</em>' : '';
+  const hint = ((todayDow===2 && day!=='tue') || (todayDow===4 && day!=='thu') || (todayDow===6 && day!=='sat')) ? '<em>오늘 요일과 다른 루틴을 보고 있습니다.</em>' : '';
   document.getElementById('banner').innerHTML = esc(W.text) + hint;
 
   document.getElementById('cards').innerHTML = W.list.map((ex,exIdx)=>{
@@ -593,7 +664,7 @@ function renderWorkout(){
       '<button class="allbtn" data-act="wall" data-ex="'+ex.id+'">'+(full?'완료됨':'전체 체크')+' ('+n+'/'+ex.sets.length+')</button></div>'+
       '<div class="meta"><span class="chip">'+esc(ex.rx)+'</span><span class="chip">'+esc(ex.rest)+'</span><span class="chip rpe">'+esc(ex.rpe)+'</span>'+timers+'</div>'+
       '<div class="vids">'+vidsHtml(ex.videos)+'</div>'+
-      '<div class="cues"><p><b class="cue-a">[186cm 셋업 큐]</b>'+esc(ex.cue)+'</p><p><b class="cue-r">[흔한 에러 · 수정 큐]</b>'+esc(ex.err)+'</p></div>'+
+      '<div class="cues"><p><b class="cue-a">[셋업 큐]</b>'+esc(ex.cue)+'</p>'+(ex.prog?'<p><b class="cue-a">[진행 기준]</b>'+esc(ex.prog)+'</p>':'')+'<p><b class="cue-r">[흔한 에러 · 수정 큐]</b>'+esc(ex.err)+'</p></div>'+
       '<div class="sets">'+sets+'</div></article>';
   }).join('');
 }
