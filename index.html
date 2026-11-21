@@ -14,7 +14,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700;900&display=swap" rel="stylesheet">
 <style>
-/* Layout idea: sticky status header, one card per stretch step, fixed timer bar at the thumb. Single dark world. */
+/* Layout idea: sticky status header, one card per exercise, fixed timer bar at the thumb. Single dark world. */
 :root{
   --bg:#0e1117; --surface:#161b24; --surface2:#1d2431; --line:#2a3344;
   --text:#eef1f5; --muted:#9aa5b8; --accent:#f2a93b; --ok:#3fbf8f; --hot:#ef6b6b; --info:#5aa9e6;
@@ -28,6 +28,7 @@ body{background:var(--bg);color:var(--text);font-family:var(--font);font-size:14
 button{font:inherit;color:inherit;cursor:pointer;touch-action:manipulation;min-height:40px}
 button:focus-visible,a:focus-visible,input:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
 h1,h2,h3,p{margin:0;text-wrap:balance}
+[hidden]{display:none !important}
 .wrap{max-width:640px;margin:0 auto;padding:0 16px}
 
 /* header */
@@ -45,7 +46,11 @@ h1{font-size:19px;font-weight:900;margin-top:2px}
 .prog-row b{color:var(--ok);font-variant-numeric:tabular-nums}
 .bar{height:8px;background:var(--surface2);border-radius:99px;overflow:hidden}
 .bar i{display:block;height:100%;width:0;background:linear-gradient(90deg,var(--accent),var(--ok));border-radius:99px;transition:width .25s}
-.tabs{display:grid;grid-template-columns:repeat(3,1fr);gap:4px;margin-top:10px;background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:4px}
+.seg{display:grid;grid-template-columns:1fr 1fr;gap:4px;margin-top:10px;background:#0a0d13;border:1px solid var(--line);border-radius:12px;padding:4px}
+.seg button{border:0;background:transparent;border-radius:9px;font-size:13px;font-weight:900;color:var(--muted);min-height:36px}
+.seg button[aria-selected="true"]{background:var(--text);color:#0e1117}
+.tabs{display:grid;grid-template-columns:repeat(3,1fr);gap:4px;margin-top:8px;background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:4px}
+.tabs.two{grid-template-columns:1fr 1fr}
 .tab{border:0;background:transparent;border-radius:9px;font-size:12px;font-weight:700;color:var(--muted);padding:6px 2px;line-height:1.3}
 .tab[aria-selected="true"]{background:var(--accent);color:#1a1205}
 
@@ -93,13 +98,14 @@ h2{font-size:16px;font-weight:900;margin-top:6px}
   border-top:1px solid var(--line);padding:10px 0 calc(10px + env(safe-area-inset-bottom))}
 .tb{display:flex;align-items:center;justify-content:space-between;gap:8px}
 .clock{flex:none;min-width:104px;text-align:center;background:#080b12;border:1px solid var(--line);border-radius:12px;padding:4px 10px}
-.phase{font-size:10px;font-weight:700;letter-spacing:.02em;color:var(--muted);white-space:nowrap}
+.phase{font-size:10px;font-weight:700;letter-spacing:.02em;color:var(--muted);white-space:nowrap;max-width:120px;overflow:hidden;text-overflow:ellipsis}
 .time{font-size:24px;font-weight:900;font-variant-numeric:tabular-nums;line-height:1.15;font-family:ui-monospace,SFMono-Regular,Menlo,monospace}
 .clock.p1 .phase,.clock.p1 .time{color:var(--accent)}
 .clock.p2 .phase,.clock.p2 .time{color:var(--hot)}
 .clock.p3 .phase,.clock.p3 .time,.clock.fin .phase,.clock.fin .time{color:var(--ok)}
-.presets{display:flex;flex-wrap:wrap;gap:6px;flex:1;min-width:0}
-.pre{min-height:36px;padding:0 10px;border-radius:9px;border:1px solid var(--line);background:var(--surface2);font-size:12px;font-weight:700}
+.presets{display:flex;flex-wrap:nowrap;gap:6px;flex:1;min-width:0;overflow-x:auto;padding-bottom:2px;scrollbar-width:none}
+.presets::-webkit-scrollbar{display:none}
+.pre{flex:none;min-height:36px;padding:0 10px;border-radius:9px;border:1px solid var(--line);background:var(--surface2);font-size:12px;font-weight:700}
 .pre.pnf{background:rgba(242,169,59,.14);border-color:rgba(242,169,59,.45);color:#f7c978}
 .ctrl{flex:none;display:flex;gap:6px}
 .cbtn{width:46px;height:46px;border-radius:12px;border:1px solid var(--line);background:var(--surface2);display:grid;place-items:center}
@@ -108,7 +114,6 @@ h2{font-size:16px;font-weight:900;margin-top:6px}
 
 /* modal */
 .modal{position:fixed;inset:0;z-index:50;background:rgba(0,0,0,.72);display:flex;align-items:center;justify-content:center;padding:16px}
-.modal[hidden]{display:none}
 .dlg{background:var(--surface);border:1px solid var(--line);border-radius:16px;max-width:340px;width:100%;padding:18px}
 .dlg h3{font-size:16px;font-weight:900}
 .dlg p{margin-top:8px;font-size:13px;color:var(--muted)}
@@ -116,7 +121,6 @@ h2{font-size:16px;font-weight:900;margin-top:6px}
 .dlg .acts button{border-radius:10px;border:1px solid var(--line);padding:8px 16px;font-weight:700;background:var(--surface2)}
 .dlg .acts .danger{background:#d24d4d;border-color:#d24d4d;color:#fff}
 @media (prefers-reduced-motion:reduce){.bar i{transition:none}.set:active{transform:none}}
-@media (max-width:380px){.presets .pre:nth-child(3){display:none}}
 </style>
 </head>
 <body>
@@ -126,18 +130,26 @@ h2{font-size:16px;font-weight:900;margin-top:6px}
     <div class="top-row">
       <div>
         <div><span class="kicker">186CM 장신 프로토콜</span><span class="date" id="dateText"></span></div>
-        <h1>좌전굴 끝범위 · 신경 가동성</h1>
+        <h1 id="title">좌전굴 끝범위 · 신경 가동성</h1>
       </div>
-      <div class="streak"><small>연속 달성</small><b><span id="streakNum">0</span>일째</b></div>
+      <div class="streak" id="streakBox"><small>연속 달성</small><b><span id="streakNum">0</span>일째</b></div>
     </div>
     <div class="prog">
       <div class="prog-row"><span id="progLabel"></span><b id="progPct">0%</b></div>
       <div class="bar"><i id="progBar"></i></div>
     </div>
-    <div class="tabs" role="tablist" aria-label="루틴 모드">
+    <div class="seg" role="tablist" aria-label="구분">
+      <button role="tab" data-act="section" data-section="stretch" id="sec-stretch">스트레칭</button>
+      <button role="tab" data-act="section" data-section="workout" id="sec-workout">근력 운동</button>
+    </div>
+    <div class="tabs" id="stretchTabs" role="tablist" aria-label="스트레칭 모드">
       <button class="tab" role="tab" data-act="mode" data-mode="full" id="tab-full">취침 전 풀 루틴<br>15분</button>
       <button class="tab" role="tab" data-act="mode" data-mode="warmup" id="tab-warmup">훈련 전 웜업<br>2분</button>
       <button class="tab" role="tab" data-act="mode" data-mode="exam" id="tab-exam">시험 직전 대기<br>2분</button>
+    </div>
+    <div class="tabs two" id="workoutTabs" role="tablist" aria-label="운동 요일" hidden>
+      <button class="tab" role="tab" data-act="wday" data-day="thu" id="wd-thu">목 · 당기기 + 푸시업</button>
+      <button class="tab" role="tab" data-act="wday" data-day="sat" id="wd-sat">토 · 상체 + 코어</button>
     </div>
   </div>
 </header>
@@ -147,12 +159,13 @@ h2{font-size:16px;font-weight:900;margin-top:6px}
   <div id="cards" style="display:flex;flex-direction:column;gap:12px"></div>
 
   <div class="foot">
-    <label><input type="checkbox" id="wakeChk" data-act="wake"><span>루틴 중 화면 켜짐 유지 <span id="wakeStat"></span></span></label>
+    <label id="autoRestRow" hidden><input type="checkbox" id="autoRestChk"><span>세트를 체크하면 휴식 타이머 자동 시작</span></label>
+    <label><input type="checkbox" id="wakeChk"><span>루틴 중 화면 켜짐 유지 <span id="wakeStat"></span></span></label>
     <div class="row">
       <span id="syncStat">저장: 이 기기</span>
       <button class="ghost" data-act="askReset">오늘 기록 초기화</button>
     </div>
-    <p>하루 기준은 새벽 4시입니다. 자정을 넘겨 운동해도 같은 날로 기록됩니다. iOS는 무음 스위치가 켜져 있으면 비프음이 나지 않을 수 있습니다.</p>
+    <p>하루 기준은 새벽 4시입니다. 자정을 넘겨 운동해도 같은 날로 기록됩니다. 영상 속 큐와 이 앱의 큐가 다르면 앱의 큐(본인 조건 기준)를 따르세요. iOS는 무음 스위치가 켜져 있으면 비프음이 나지 않을 수 있습니다.</p>
   </div>
 </main>
 
@@ -164,6 +177,10 @@ h2{font-size:16px;font-weight:900;margin-top:6px}
       <button class="pre" data-act="preset" data-sec="15" data-label="휴식 15초">15초</button>
       <button class="pre" data-act="preset" data-sec="20" data-label="홀드 20초">20초</button>
       <button class="pre pnf" data-act="preset" data-sec="30" data-label="PNF 3단계" data-pnf="1">PNF 30초</button>
+      <button class="pre" data-act="preset" data-sec="45" data-label="휴식 45초">45초</button>
+      <button class="pre" data-act="preset" data-sec="60" data-label="휴식 60초">60초</button>
+      <button class="pre" data-act="preset" data-sec="90" data-label="휴식 90초">90초</button>
+      <button class="pre" data-act="preset" data-sec="120" data-label="휴식 2분">2분</button>
     </div>
     <div class="ctrl">
       <button class="cbtn go" id="goBtn" data-act="toggle" aria-label="시작 또는 일시정지">
@@ -180,21 +197,21 @@ h2{font-size:16px;font-weight:900;margin-top:6px}
 <div class="modal" id="modal" hidden role="dialog" aria-modal="true" aria-labelledby="mTitle">
   <div class="dlg">
     <h3 id="mTitle">오늘 세트 기록을 초기화할까요?</h3>
-    <p>모든 모드의 체크가 해제됩니다. 오늘 풀 루틴 완료로 올라간 연속 일수도 함께 되돌려집니다.</p>
+    <p>스트레칭과 근력 운동의 모든 체크가 해제됩니다. 오늘 풀 루틴 완료로 올라간 연속 일수도 함께 되돌려집니다.</p>
     <div class="acts"><button data-act="cancelReset">취소</button><button class="danger" data-act="doReset">초기화</button></div>
   </div>
 </div>
 
 <script>
-/* ---------- 루틴 데이터 (모드별 처방을 따로 정의) ---------- */
+/* ---------- 스트레칭 데이터 (모드별 처방을 따로 정의) ---------- */
 const STEPS = [
   {
-    id:'1a', badge:'STEP 1-A', title:'골반 후방경사 세팅 (누워서 다리 밀기)', subtitle:'골반 정렬 및 과긴장 해제',
-    videos:[{label:'어썸블리스 신버전 (02:30 ~ 03:00)', url:'https://www.youtube.com/watch?v=4TiA20bfr4k&t=150s'}],
-    cue:'누워서 무릎을 90도로 세운 뒤, 둔근(엉덩이)에 먼저 힘을 주어 꼬리뼈를 살짝 말아 올리고(후방경사) 발바닥으로 바닥을 앞쪽으로 밀어내는 힘을 유지. 긴 다리라서 발을 멀리 두기 쉬우니 무릎 90도를 지킬 것.',
-    tip:'목적은 햄스트링을 늘리는 것이 아니라 골반 위치를 잡는 것입니다. 허리가 바닥에서 뜨지 않게 복압을 유지하고, 요추 통증이 생기면 중단.',
-    modes:{ full:{ rx:'좌우 각 20초 × 2세트', rest:'휴식 15초', rpe:'RPE 4',
-      timer:{sec:20,label:'골반 세팅 20초'}, sets:['1세트 (좌/우 20초)','2세트 (좌/우 20초)'] } }
+    id:'1a', badge:'STEP 1-A', title:'골반 중립 세팅 (4점 자세 + 앉아서 골반 세우기)', subtitle:'후방경사 교정',
+    videos:[],
+    cue:'4점 자세에서 엉덩이를 뒤로 빼며 꼬리뼈를 위로 들어 허리를 살짝 아치로 만들었다가(전방경사) 제자리로. 앉아서는 좌골을 뒤로 빼는 느낌으로 골반을 앞으로 기울여 세우고 5초 유지. 목은 중립, 어깨는 내립니다.',
+    tip:'후방경사에서는 골반을 더 말아 올리는 동작이 반대 방향입니다. 아치는 살짝만 만들고, 요추 통증이 생기면 범위를 줄이거나 중단하세요.',
+    modes:{ full:{ rx:'4점 자세 전방경사 10회 + 앉아서 골반 세우기 10회(5초 유지) × 2세트', rest:'휴식 30초', rpe:'RPE 4',
+      timer:{sec:5,label:'골반 세우기 5초 유지'}, sets:['1세트','2세트'] } }
   },
   {
     id:'1b', badge:'STEP 1-B', title:'엘리펀트 워크 (좌골신경 글라이딩)', subtitle:'좌골신경 활주성 개선',
@@ -255,6 +272,160 @@ const MODE_TEXT = {
 };
 const MODE_NAME = {full:'풀 루틴', warmup:'웜업', exam:'시험 직전'};
 
+/* ---------- 근력 운동 데이터 (목·토) ---------- */
+const WARMUP = {
+  id:'wu', name:'워밍업 5분', target:'흉추 · 견갑 · 어깨 준비',
+  rx:'캣카우 10회 → 벽 슬라이드 10회 → 밴드 풀어파트 15회 → 데드행 20초 × 2', rest:'동작 사이 쉬지 않음', rpe:'RPE 3~4', restSec:0,
+  work:{sec:20,label:'데드행 20초'},
+  cue:'모든 동작에서 목은 중립. 데드행은 어깨를 귀에서 먼저 내린 뒤 매달립니다(어깨를 올린 채 매달리지 않기).',
+  err:'벽 슬라이드에서 허리를 젖혀 팔을 올림 → 갈비뼈를 내리고 허리를 벽에 가볍게 붙입니다. 데드행에서 악력이 먼저 풀리면 거기서 종료(전완건염 이력).',
+  sets:['캣카우 10회','벽 슬라이드 10회','밴드 풀어파트 15회','데드행 20초 #1','데드행 20초 #2'],
+  videos:[
+    {label:'캣카우 (영문)', url:'https://www.youtube.com/watch?v=xKN35sXbwpQ'},
+    {label:'월 슬라이드 (루프밴드)', url:'https://www.youtube.com/watch?v=w3dYy-BfCEE'},
+    {label:'밴드 풀 어파트', url:'https://www.youtube.com/watch?v=CNh2RxeJ9xY'},
+    {label:'데드행 매달리기 (리쌤)', url:'https://www.youtube.com/watch?v=4HLGdRyMkIU'}
+  ]
+};
+const EX = {
+  row:{
+    id:'row', name:'바벨 로우 (언더그립)', target:'광배근 · 능형근 · 하부 승모근 · 척추기립근(등척성)',
+    rx:'8~10회 × 5세트', rest:'휴식 2분', restSec:120, rpe:'RPE 7',
+    cue:'골반 너비 스탠스, 무릎을 살짝 굽혀 힙힌지. 상체 각도는 약 45°부터 시작(수평에 가까울수록 요추 부담이 커집니다). 요추 중립, 햄스트링이 당겨 골반이 말리면 무릎을 더 굽혀 각도를 줄입니다. 시선은 바닥 1~1.5m 앞(목 중립, 고개를 들지 않기). 언더그립 어깨너비, 팔꿈치를 몸통 옆으로 보내 배꼽 아래로 당기고 상단에서 견갑을 모읍니다. 186cm는 바닥에서 시작하면 힌지가 깊어지니, 랙 안전바로 시작 높이를 무릎 아래~무릎 높이로 올릴 수 있습니다.',
+    err:'상체를 일으키며 반동 → 무게를 낮추고 상체 각도를 고정. 어깨가 올라가며 목이 앞으로 → 시선 고정, 어깨를 내리고 시작. 요추가 말림 → 각도와 가동범위를 줄입니다. 악력이 먼저 풀림 → 그 세트에서 종료(전완건염 이력).',
+    sets:['1세트 8~10회','2세트 8~10회','3세트 8~10회','4세트 8~10회','5세트 8~10회'],
+    videos:[
+      {label:'바벨로우 기본 세팅 (자세 설명)', url:'https://www.youtube.com/watch?v=mi55EK35xfk'},
+      {label:'언더그립 바벨 로우 3분 레슨', url:'https://www.youtube.com/watch?v=2vp47pQTziE'}
+    ]
+  },
+  pullThu:{
+    id:'pullThu', name:'밴드 보조 턱걸이', target:'광배근 · 하부 승모근 · 이두근 · 악력',
+    rx:'6~8회 × 4세트 (어깨너비 오버그립)', rest:'휴식 2분', restSec:120, rpe:'RPE 7',
+    cue:'데드행에서 어깨를 먼저 내립니다(견갑 하강). 갈비뼈를 내리고 가슴을 바에 붙이듯 당기며 팔꿈치는 허리 쪽으로. 머리를 내밀어 바를 넘기지 않고 턱은 중립. 186cm는 다리가 길어 무릎을 굽혀 발을 교차하고 밴드가 발에 끌리지 않게 합니다. 내려올 때 3초 통제하고 완전히 펴서 어깨를 다시 내립니다.',
+    err:'몸을 흔들어 반동 → 하체 고정. 어깨가 귀로 올라가고 목이 나옴 → 시작 전에 어깨 내리기. 가동범위를 줄임 → 더 굵은 밴드로 전 구간 사용. 악력이 먼저 풀리면 그 세트에서 종료(전완건염 이력).',
+    sets:['1세트 6~8회','2세트 6~8회','3세트 6~8회','4세트 6~8회'],
+    videos:[
+      {label:'올바른 풀업 밴드 사용법', url:'https://www.youtube.com/watch?v=SIYet5taYIE'},
+      {label:'어깨 안 아프게 풀업하는 방법', url:'https://www.youtube.com/watch?v=IEQsODGj8ss'}
+    ]
+  },
+  pullSat:{
+    id:'pullSat', name:'밴드 보조 턱걸이 (넓은 그립)', target:'광배근 · 하부 승모근 · 이두근 · 악력',
+    rx:'5~6회 × 4세트 (목요일보다 약간 넓은 그립)', rest:'휴식 2분', restSec:120, rpe:'RPE 6~7',
+    cue:'목요일과 다른 폭의 오버그립. 데드행에서 어깨를 먼저 내리고, 갈비뼈를 내려 가슴을 바에 붙이듯 당깁니다. 턱은 중립. 목요일과 48시간 간격이라 볼륨을 낮췄습니다.',
+    err:'반동 → 하체 고정. 목이 앞으로 나옴 → 어깨 내리고 턱 중립. 악력이 먼저 풀리면 그 세트에서 종료(전완건염 이력).',
+    sets:['1세트 5~6회','2세트 5~6회','3세트 5~6회','4세트 5~6회'],
+    videos:[
+      {label:'올바른 풀업 밴드 사용법', url:'https://www.youtube.com/watch?v=SIYet5taYIE'},
+      {label:'어깨 안 아프게 풀업하는 방법', url:'https://www.youtube.com/watch?v=IEQsODGj8ss'}
+    ]
+  },
+  sarmThu:{
+    id:'sarmThu', name:'밴드 스트레이트암 풀다운', target:'광배근 · 견갑 하강',
+    rx:'15회 × 2세트 (광배 마무리용)', rest:'휴식 60초', restSec:60, rpe:'RPE 6~7',
+    cue:'밴드를 머리 위 높은 곳에 걸고 한 발짝 뒤에 서서 무릎을 살짝 굽힙니다. 힙힌지 약 30°만, 팔꿈치는 5~10° 굽힌 채 고정. 어깨를 귀에서 먼저 내린 뒤 허벅지 옆까지 호를 그리며 당기고 끝에서 1초 정지. 턱은 당겨 경추 중립.',
+    err:'팔꿈치를 굽혀 푸시다운이 됨 → 각도 고정. 어깨가 올라가고 머리가 나옴 → 시작 전 어깨 내리고 턱 당기기. 허리를 젖혀 반동 → 갈비뼈 내리고 복압 유지.',
+    sets:['1세트 15회','2세트 15회'],
+    videos:[
+      {label:'튜빙밴드 스트레이트암 랫풀다운', url:'https://www.youtube.com/watch?v=SwOH_HHHvko'},
+      {label:'스트레이트암 풀다운 하는 법', url:'https://www.youtube.com/watch?v=_5WD_dWjZ30'}
+    ]
+  },
+  sarmSat:{
+    id:'sarmSat', name:'스트레이트암 풀다운 (활성화)', target:'광배근 · 견갑 하강 (턱걸이 전 활성화용)',
+    rx:'12~15회 × 2세트', rest:'휴식 60초', restSec:60, rpe:'RPE 5',
+    cue:'케이블(또는 밴드)을 높게 두고 한 발짝 뒤에 서서 무릎을 살짝 굽힙니다. 힙힌지 약 30°, 팔꿈치 5~10° 굽힌 채 고정. 어깨를 먼저 내린 뒤 허벅지 옆까지 호를 그리고 끝에서 1초 정지. 턱은 당겨 경추 중립. 오늘은 턱걸이 전 활성화용이라 가볍게 합니다.',
+    err:'팔꿈치가 굽혀짐 → 각도 고정. 어깨가 올라감 → 시작 전에 어깨 내리기. 허리가 젖혀짐 → 갈비뼈 내리기.',
+    sets:['1세트 12~15회','2세트 12~15회'],
+    videos:[
+      {label:'스트레이트암 풀다운 하는 법', url:'https://www.youtube.com/watch?v=_5WD_dWjZ30'},
+      {label:'튜빙밴드 스트레이트암 랫풀다운', url:'https://www.youtube.com/watch?v=SwOH_HHHvko'}
+    ]
+  },
+  face:{
+    id:'face', name:'페이스풀', target:'후면 삼각근 · 회전근개 외회전근 · 중하부 승모근',
+    rx:'15회 × 3세트', rest:'휴식 60초', restSec:60, rpe:'RPE 6',
+    cue:'케이블은 이마 높이, 로프 사용. 팔꿈치를 손보다 높게 유지한 채 얼굴 쪽으로 당기고, 끝에서 외회전을 1초 유지. 머리가 앞으로 나오지 않게 턱은 중립. 반동 없이 할 수 있는 무게로.',
+    err:'어깨가 올라가 승모근으로 당김 → 어깨를 내리고 시작. 무게 과다 → 반동 없는 무게로 낮추기. 허리를 젖혀 당김 → 갈비뼈 내리기.',
+    sets:['1세트 15회','2세트 15회','3세트 15회'],
+    videos:[
+      {label:'페이스풀 (후면 어깨운동)', url:'https://www.youtube.com/watch?v=Kr1bzGlXsuU'},
+      {label:'페이스풀 튜토리얼 (부상방지·자세교정)', url:'https://www.youtube.com/watch?v=1ai8x3IqVrk'}
+    ]
+  },
+  yraise:{
+    id:'yraise', name:'Y 레이즈', target:'하부 승모근 · 전거근 · 어깨 안정',
+    rx:'12회 × 3세트 (매우 가볍게)', rest:'휴식 60초', restSec:60, rpe:'RPE 5~6',
+    cue:'엎드리거나 인클라인 벤치, 또는 밴드로 진행. 무게는 1~2kg 이하로 시작. 팔을 Y(약 30°) 방향으로 엄지를 위로 향한 채 들어 올리고 끝에서 1초 정지. 어깨는 귀에서 먼저 내린 상태로 시작합니다. 이마를 벤치에 눌러 대지 말고 시선은 아래, 목은 중립.',
+    err:'어깨가 귀로 올라감(상부 승모근 개입) → 무게를 낮추고 어깨를 내린 뒤 시작. 허리를 젖힘 → 갈비뼈 내리고 복압 유지. 반동 → 속도를 늦추고 2초 올리기.',
+    sets:['1세트 12회','2세트 12회','3세트 12회'],
+    videos:[
+      {label:'하부 승모근 4가지 운동 중 밴드 Y (12:08)', url:'https://www.youtube.com/watch?v=yq5d8tV2XVM&t=728s'},
+      {label:'하부 승모근 4가지 운동 중 엎드려 Y (14:16)', url:'https://www.youtube.com/watch?v=yq5d8tV2XVM&t=856s'}
+    ]
+  },
+  pushup:{
+    id:'pushup', name:'푸시업', target:'대흉근 · 전면 삼각근 · 삼두 · 코어',
+    rx:'실패 2회 전까지 × 3세트', rest:'휴식 90초', restSec:90, rpe:'RPE 8 이하 (실패 2회 남기기)',
+    cue:'손은 어깨보다 약간 넓게, 팔꿈치 약 45°. 갈비뼈를 내리고 골반 중립으로 몸통을 판자처럼 유지(허리 처짐 금지). 시선은 손 앞 30cm 정도 바닥으로 목을 중립에 둡니다. 손목이 아프면 푸시업 바나 주먹으로 바꿉니다(전완건염 이력).',
+    err:'허리가 처지고 배가 떨어짐 → 갈비뼈 내리고 엉덩이 조이기. 목이 앞으로 빠짐 → 시선을 앞 바닥으로. 가동범위가 줄어듦 → 가슴이 바닥 가까이 올 때까지. 실패까지 가서 자세가 무너지면 그 전에 종료.',
+    sets:['1세트 (실패 2회 전)','2세트 (실패 2회 전)','3세트 (실패 2회 전)'],
+    videos:[
+      {label:'완벽한 푸쉬업 자세 교본', url:'https://www.youtube.com/watch?v=-_DUjHxgmWk'},
+      {label:'푸시업바로 손목 통증 없이', url:'https://www.youtube.com/watch?v=6sZoCUIYjBk'}
+    ]
+  },
+  hang:{
+    id:'hang', name:'행잉 레그레이즈 (니레이즈부터)', target:'복직근 하부 · 장요근 · 악력',
+    rx:'8~10회 × 3세트', rest:'휴식 90초', restSec:90, rpe:'RPE 7',
+    cue:'186cm는 다리 레버가 길어 무릎 90° 굽힌 니레이즈부터 시작. 어깨를 내린 액티브 행 상태에서 시작합니다. 후방경사가 있으니 꼬리뼈를 과하게 말지 말고 골반 중립 범위에서 올립니다. 내릴 때 3초 통제.',
+    err:'반동 → 시작 전에 몸을 정지시키기. 허리가 과하게 젖혀짐 → 갈비뼈 내리기. 꼬리뼈를 과하게 말아 올림 → 중립 범위에서만. 몸이 흔들리면 그 세트 종료. 악력이 먼저 풀리면 종료(전완건염 이력).',
+    sets:['1세트 8~10회','2세트 8~10회','3세트 8~10회'],
+    videos:[
+      {label:'행잉 레그레이즈 운동방법', url:'https://www.youtube.com/watch?v=6wpEDJ9j1Y4'},
+      {label:'행잉 니업 무반동 단계별 연습', url:'https://www.youtube.com/watch?v=sHCevuT6zpI'}
+    ]
+  },
+  deadbug:{
+    id:'deadbug', name:'데드버그', target:'복횡근 · 복직근 · 요추 안정',
+    rx:'8회/측 × 3세트', rest:'휴식 45초', restSec:45, rpe:'RPE 6',
+    cue:'허리를 바닥에 억지로 누르지 말고 중립을 유지합니다(후방경사를 더 키우지 않기). 갈비뼈를 내리고 반대 팔다리를 천천히 폅니다. 호흡을 멈추지 않습니다.',
+    err:'허리가 뜸 → 다리를 덜 내리고 범위를 줄이기. 숨을 참음 → 내쉬며 펴기. 반동 → 속도를 늦추기.',
+    sets:['1세트 (좌우 8회)','2세트 (좌우 8회)','3세트 (좌우 8회)'],
+    videos:[
+      {label:'데드버그 기초부터 응용까지', url:'https://www.youtube.com/watch?v=NKO0OKO4wq0'},
+      {label:'데드버그 단계별 운동방법', url:'https://www.youtube.com/watch?v=EHn2WswT5uU'}
+    ]
+  },
+  bird:{
+    id:'bird', name:'버드독', target:'척추 중립 · 둔근 · 기립근',
+    rx:'8회/측 × 2세트 (끝에서 5초 정지)', rest:'휴식 45초', restSec:45, rpe:'RPE 5',
+    cue:'척추를 중립으로 두고 반대 팔다리를 뻗어 끝에서 5초 정지. 골반이 돌아가지 않게 합니다. 목은 중립, 시선은 바닥.',
+    err:'골반이 틀어지고 허리가 꺾임 → 다리를 높이 들지 말고 몸통 높이까지만. 손목이 아프면 주먹 지지. 반동 → 속도를 늦추기.',
+    sets:['1세트 (좌우 8회)','2세트 (좌우 8회)'],
+    videos:[{label:'버드독 (코어 강화, 척추 중립)', url:'https://www.youtube.com/watch?v=w6QRGET6lW4'}]
+  },
+  sideplank:{
+    id:'sideplank', name:'사이드 플랭크', target:'복사근 · 중둔근 · 측면 코어',
+    rx:'30초/측 × 2세트', rest:'휴식 45초', restSec:45, rpe:'RPE 6',
+    work:{sec:30,label:'사이드 플랭크 30초'},
+    cue:'팔꿈치를 어깨 바로 아래에 두고 골반을 올려 머리부터 발까지 일직선. 목은 중립으로 유지합니다.',
+    err:'골반이 처짐 → 높이를 낮추거나 무릎을 대고 시작. 어깨가 올라감 → 어깨를 내리고 팔꿈치로 바닥 밀기. 몸이 앞뒤로 말림 → 가슴을 열고 엉덩이 조이기.',
+    sets:['좌측 1세트 (30초)','우측 1세트 (30초)','좌측 2세트 (30초)','우측 2세트 (30초)'],
+    videos:[{label:'사이드 플랭크 자세 (측면 코어)', url:'https://www.youtube.com/watch?v=vm2GEpNL7NU'}]
+  }
+};
+const WORKOUTS = {
+  thu:{ label:'목 · 당기기 + 푸시업', title:'근력 운동 · 목요일',
+    text:'당기기와 푸시업 중심입니다. 세트를 체크하면 휴식 타이머가 자동으로 시작합니다. 워밍업은 토요일과 같은 구성입니다.',
+    list:[WARMUP, EX.row, EX.pullThu, EX.sarmThu, EX.face, EX.yraise, EX.pushup] },
+  sat:{ label:'토 · 상체 + 코어', title:'근력 운동 · 토요일',
+    text:'스트레이트암 풀다운으로 활성화한 뒤 턱걸이, 행잉 레그레이즈, 페이스풀, 코어 순서입니다. 할로우 홀드는 후방경사 때문에 뺐습니다.',
+    list:[WARMUP, EX.sarmSat, EX.pullSat, EX.hang, EX.face, EX.deadbug, EX.bird, EX.sideplank] }
+};
+// 토요일 페이스풀은 3 x 15 / RPE 6 (목요일과 같은 세트 수 유지)
+
 /* ---------- 상태 ---------- */
 const KEY = 'ff_sitreach_v2';
 const DAY_START_HOUR = 4;
@@ -263,14 +434,18 @@ function dayKey(){
   return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');
 }
 function dnum(k){ const p=k.split('-').map(Number); return Date.UTC(p[0],p[1]-1,p[2])/864e5; }
-const defaults = ()=>({v:2, day:dayKey(), done:{}, streak:0, lastDone:null, undo:null, mode:'full', wake:true, savedAt:0});
+function weekdayOf(k){ const p=k.split('-').map(Number); return new Date(p[0],p[1]-1,p[2]).getDay(); }
+const defaults = ()=>({v:2, day:dayKey(), done:{}, streak:0, lastDone:null, undo:null, mode:'full', section:'stretch', wday:'thu', autoRest:true, wake:true, savedAt:0});
 let S = defaults();
 try{ const raw=localStorage.getItem(KEY); if(raw) S=Object.assign(defaults(), JSON.parse(raw)); }catch(e){}
+if(!WORKOUTS[S.wday]) S.wday = 'thu';
 
 const sk = (m,id,i)=>m+'|'+id+'|'+i;
+const wk = (day,id,i)=>'w|'+day+'|'+id+'|'+i;
 function modeSteps(m){ return STEPS.filter(s=>s.modes[m]); }
 function modeKeys(m){ const out=[]; modeSteps(m).forEach(s=>s.modes[m].sets.forEach((_,i)=>out.push(sk(m,s.id,i)))); return out; }
-function countDone(m){ return modeKeys(m).filter(k=>S.done[k]).length; }
+function workoutKeys(day){ const out=[]; WORKOUTS[day].list.forEach(ex=>ex.sets.forEach((_,i)=>out.push(wk(day,ex.id,i)))); return out; }
+function countKeys(keys){ return keys.filter(k=>S.done[k]).length; }
 
 function ensureDay(){
   const today = dayKey();
@@ -284,8 +459,7 @@ function effStreak(){
   return (dnum(S.day)-dnum(S.lastDone) <= 1) ? S.streak : 0;
 }
 function syncStreak(){
-  const keys = modeKeys('full');
-  const all = keys.every(k=>S.done[k]);
+  const all = modeKeys('full').every(k=>S.done[k]);
   if(all && S.lastDone !== S.day){
     S.undo = {streak:S.streak, last:S.lastDone};
     S.streak = (S.lastDone && dnum(S.day)-dnum(S.lastDone)===1) ? S.streak+1 : 1;
@@ -326,6 +500,7 @@ async function initCloud(){
     }catch(e){}
     if(remote && remote.v === 2 && (remote.savedAt||0) > (S.savedAt||0)){
       S = Object.assign(defaults(), remote);
+      if(!WORKOUTS[S.wday]) S.wday='thu';
       ensureDay(); syncStreak(); render();
       try{ localStorage.setItem(KEY, JSON.stringify(S)); }catch(e){}
       setSync('저장: 계정 동기화됨');
@@ -338,30 +513,48 @@ async function initCloud(){
 /* ---------- 렌더 ---------- */
 function esc(s){ return String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c])); }
 const DAYS=['일','월','화','수','목','금','토'];
+function checkSvg(){ return '<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 13l4 4L19 7"/></svg>'; }
+function vidsHtml(list){ return list.map(v=>'<a class="vid" href="'+v.url+'" target="_blank" rel="noopener noreferrer">▶ '+esc(v.label)+'</a>').join(''); }
+
 function render(){
   const y = scrollY;
-  const m = S.mode;
+  const work = S.section === 'workout';
   const [yy,mm,dd] = S.day.split('-').map(Number);
   const dow = DAYS[new Date(yy,mm-1,dd).getDay()];
   document.getElementById('dateText').textContent = mm+'월 '+dd+'일 ('+dow+') 기록일';
   document.getElementById('streakNum').textContent = effStreak();
-  ['full','warmup','exam'].forEach(k=>document.getElementById('tab-'+k).setAttribute('aria-selected', String(k===m)));
-
-  const total = modeKeys(m).length, done = countDone(m);
+  document.getElementById('streakBox').hidden = work;
+  document.getElementById('sec-stretch').setAttribute('aria-selected', String(!work));
+  document.getElementById('sec-workout').setAttribute('aria-selected', String(work));
+  document.getElementById('stretchTabs').hidden = work;
+  document.getElementById('workoutTabs').hidden = !work;
+  document.getElementById('autoRestRow').hidden = !work;
+  document.getElementById('autoRestChk').checked = !!S.autoRest;
+  document.getElementById('wakeChk').checked = !!S.wake;
+  if(work) renderWorkout(); else renderStretch();
+  scrollTo(0,y);
+}
+function setProgress(label, done, total){
   const pct = total ? Math.round(done/total*100) : 0;
-  document.getElementById('progLabel').textContent = MODE_NAME[m]+' 진행률: '+done+' / '+total+' 세트';
+  document.getElementById('progLabel').textContent = label+': '+done+' / '+total+' 세트';
   document.getElementById('progPct').textContent = pct+'%';
   document.getElementById('progBar').style.width = pct+'%';
+}
+function renderStretch(){
+  const m = S.mode;
+  document.getElementById('title').textContent = '좌전굴 끝범위 · 신경 가동성';
+  ['full','warmup','exam'].forEach(k=>document.getElementById('tab-'+k).setAttribute('aria-selected', String(k===m)));
+  const keys = modeKeys(m);
+  setProgress(MODE_NAME[m]+' 진행률', countKeys(keys), keys.length);
   document.getElementById('banner').innerHTML = esc(MODE_TEXT[m]) + (m!=='full' ? '<em>웜업·시험 직전 체크는 연속 달성에 반영되지 않습니다. 연속 달성은 풀 루틴 완료만 셉니다.</em>' : '');
 
   document.getElementById('cards').innerHTML = modeSteps(m).map(s=>{
     const d = s.modes[m];
     const n = d.sets.filter((_,i)=>S.done[sk(m,s.id,i)]).length;
     const full = n === d.sets.length;
-    const vids = s.videos.map(v=>'<a class="vid" href="'+v.url+'" target="_blank" rel="noopener noreferrer">▶ '+esc(v.label)+'</a>').join('');
     const sets = d.sets.map((lab,i)=>{
       const on = !!S.done[sk(m,s.id,i)];
-      return '<button class="set" data-act="set" data-key="'+sk(m,s.id,i)+'" aria-pressed="'+on+'"><span class="box">'+(on?'<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 13l4 4L19 7"/></svg>':'')+'</span><span>'+esc(lab)+'</span></button>';
+      return '<button class="set" data-act="set" data-key="'+sk(m,s.id,i)+'" aria-pressed="'+on+'"><span class="box">'+(on?checkSvg():'')+'</span><span>'+esc(lab)+'</span></button>';
     }).join('');
     return '<article class="card'+(full?' done':'')+'">'+
       '<div class="card-head"><div><span class="badge">'+s.badge+'</span><span class="sub">'+esc(s.subtitle)+'</span><h2>'+esc(s.title)+'</h2></div>'+
@@ -369,12 +562,40 @@ function render(){
       '<div class="meta"><span class="chip">'+esc(d.rx)+'</span><span class="chip">'+esc(d.rest)+'</span><span class="chip rpe">'+esc(d.rpe)+'</span>'+
       '<button class="chip timer" data-act="preset" data-sec="'+d.timer.sec+'" data-label="'+esc(d.timer.label)+'"'+(d.timer.pnf?' data-pnf="1"':'')+'>'+d.timer.sec+'초 타이머 세팅</button></div>'+
       (d.note?'<div class="note">'+esc(d.note)+'</div>':'')+
-      '<div class="vids">'+vids+'</div>'+
+      (s.videos.length?'<div class="vids">'+vidsHtml(s.videos)+'</div>':'')+
       '<div class="cues"><p><b class="cue-a">[186cm 셋업 큐]</b>'+esc(s.cue)+'</p><p><b class="cue-r">[부상 방지]</b>'+esc(s.tip)+'</p></div>'+
       '<div class="sets">'+sets+'</div></article>';
   }).join('');
-  document.getElementById('wakeChk').checked = !!S.wake;
-  scrollTo(0,y);
+}
+function renderWorkout(){
+  const day = S.wday, W = WORKOUTS[day];
+  document.getElementById('title').textContent = W.title;
+  ['thu','sat'].forEach(k=>document.getElementById('wd-'+k).setAttribute('aria-selected', String(k===day)));
+  const keys = workoutKeys(day);
+  setProgress('오늘 운동 진행률', countKeys(keys), keys.length);
+  const todayDow = weekdayOf(S.day);
+  const hint = ((todayDow===4 && day!=='thu') || (todayDow===6 && day!=='sat')) ? '<em>오늘 요일과 다른 루틴을 보고 있습니다.</em>' : '';
+  document.getElementById('banner').innerHTML = esc(W.text) + hint;
+
+  document.getElementById('cards').innerHTML = W.list.map((ex,exIdx)=>{
+    const n = ex.sets.filter((_,i)=>S.done[wk(day,ex.id,i)]).length;
+    const full = n === ex.sets.length;
+    const lastEx = exIdx === W.list.length-1;
+    const sets = ex.sets.map((lab,i)=>{
+      const on = !!S.done[wk(day,ex.id,i)];
+      const skip = (lastEx && i===ex.sets.length-1) ? '1' : '0';
+      return '<button class="set" data-act="wset" data-key="'+wk(day,ex.id,i)+'" data-rest="'+ex.restSec+'" data-skip="'+skip+'" aria-pressed="'+on+'"><span class="box">'+(on?checkSvg():'')+'</span><span>'+esc(lab)+'</span></button>';
+    }).join('');
+    const timers = (ex.restSec>0 ? '<button class="chip timer" data-act="preset" data-sec="'+ex.restSec+'" data-label="휴식 '+ex.restSec+'초">휴식 '+ex.restSec+'초 타이머</button>' : '')+
+      (ex.work ? '<button class="chip timer" data-act="preset" data-sec="'+ex.work.sec+'" data-label="'+esc(ex.work.label)+'">'+esc(ex.work.label)+' 타이머</button>' : '');
+    return '<article class="card'+(full?' done':'')+'">'+
+      '<div class="card-head"><div><span class="badge">'+(exIdx===0?'WARM-UP':(exIdx)+' / '+(W.list.length-1))+'</span><span class="sub">'+esc(ex.target)+'</span><h2>'+esc(ex.name)+'</h2></div>'+
+      '<button class="allbtn" data-act="wall" data-ex="'+ex.id+'">'+(full?'완료됨':'전체 체크')+' ('+n+'/'+ex.sets.length+')</button></div>'+
+      '<div class="meta"><span class="chip">'+esc(ex.rx)+'</span><span class="chip">'+esc(ex.rest)+'</span><span class="chip rpe">'+esc(ex.rpe)+'</span>'+timers+'</div>'+
+      '<div class="vids">'+vidsHtml(ex.videos)+'</div>'+
+      '<div class="cues"><p><b class="cue-a">[186cm 셋업 큐]</b>'+esc(ex.cue)+'</p><p><b class="cue-r">[흔한 에러 · 수정 큐]</b>'+esc(ex.err)+'</p></div>'+
+      '<div class="sets">'+sets+'</div></article>';
+  }).join('');
 }
 
 /* ---------- 타이머 (종료 시각 기준, 백그라운드 복귀 시 보정) ---------- */
@@ -435,7 +656,7 @@ function pauseTimer(){
   clearInterval(T.id); T.id=null; T.last = Math.ceil(T.remMs/1000); drawTimer();
 }
 function setPreset(sec,label,pnf){
-  pauseTimer(); T.dur=sec; T.remMs=sec*1000; T.last=sec; T.label=label; T.pnf=!!pnf; beep(660,.08); drawTimer();
+  pauseTimer(); T.dur=sec; T.remMs=sec*1000; T.last=sec; T.label=label; T.pnf=!!pnf; drawTimer();
 }
 
 /* ---------- 화면 켜짐 유지 ---------- */
@@ -457,13 +678,23 @@ function releaseWake(){ try{ if(wl) wl.release(); }catch(e){} wl=null; wakeUI(''
 document.addEventListener('click', e=>{
   const el = e.target.closest('[data-act]'); if(!el) return;
   const a = el.dataset.act;
-  if(a==='wake') return;
   if(ensureDay()) persist();
   if(a==='mode'){ S.mode = el.dataset.mode; persist(); render(); }
+  else if(a==='section'){ S.section = el.dataset.section; persist(); render(); }
+  else if(a==='wday'){ S.wday = el.dataset.day; persist(); render(); }
   else if(a==='set'){
     const k = el.dataset.key;
     if(S.done[k]) delete S.done[k]; else S.done[k]=true;
     syncStreak(); persist(); render(); requestWake();
+  }
+  else if(a==='wset'){
+    const k = el.dataset.key, rest = +el.dataset.rest || 0;
+    const nowOn = !S.done[k];
+    if(nowOn) S.done[k]=true; else delete S.done[k];
+    persist(); render(); requestWake();
+    if(nowOn && S.autoRest && rest>0 && el.dataset.skip!=='1'){
+      setPreset(rest, '휴식 '+rest+'초', false); startTimer();
+    }
   }
   else if(a==='all'){
     const m=S.mode, st=STEPS.find(s=>s.id===el.dataset.step), keys=st.modes[m].sets.map((_,i)=>sk(m,st.id,i));
@@ -471,7 +702,13 @@ document.addEventListener('click', e=>{
     keys.forEach(k=>{ if(every) delete S.done[k]; else S.done[k]=true; });
     syncStreak(); persist(); render();
   }
-  else if(a==='preset'){ setPreset(+el.dataset.sec, el.dataset.label, el.dataset.pnf==='1'); requestWake(); }
+  else if(a==='wall'){
+    const day=S.wday, ex=WORKOUTS[day].list.find(x=>x.id===el.dataset.ex), keys=ex.sets.map((_,i)=>wk(day,ex.id,i));
+    const every = keys.every(k=>S.done[k]);
+    keys.forEach(k=>{ if(every) delete S.done[k]; else S.done[k]=true; });
+    persist(); render();
+  }
+  else if(a==='preset'){ setPreset(+el.dataset.sec, el.dataset.label, el.dataset.pnf==='1'); beep(660,.08); requestWake(); }
   else if(a==='toggle'){ T.running ? pauseTimer() : startTimer(); }
   else if(a==='resetTimer'){ pauseTimer(); T.remMs=T.dur*1000; T.last=T.dur; drawTimer(); }
   else if(a==='askReset'){ document.getElementById('modal').hidden=false; }
@@ -482,11 +719,14 @@ document.getElementById('wakeChk').addEventListener('change', e=>{
   S.wake = e.target.checked; persist();
   if(S.wake) requestWake(); else releaseWake();
 });
+document.getElementById('autoRestChk').addEventListener('change', e=>{
+  S.autoRest = e.target.checked; persist();
+});
 document.addEventListener('visibilitychange', ()=>{
   if(document.visibilityState==='visible'){
     if(ensureDay()){ persist(); render(); }
     if(T.running) tick();
-    if(S.wake && (T.running)) { wl=null; requestWake(); }
+    if(S.wake && T.running){ wl=null; requestWake(); }
   }
 });
 setInterval(()=>{ if(ensureDay()){ persist(); render(); } }, 30000);
