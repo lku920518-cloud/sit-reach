@@ -94,6 +94,9 @@ h2{font-size:16px;font-weight:900;margin-top:6px}
 .logrow input{min-width:0;background:var(--bg);color:var(--text);border:1px solid var(--line);border-radius:10px;padding:8px 10px;font-size:13px}
 .logrow .winp{flex:1}
 .logrow .rinp{width:84px}
+.runlog{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:10px}
+.runlog label{display:flex;flex-direction:column;gap:3px;font-size:11px;color:var(--muted)}
+.runlog input{min-width:0;width:100%;background:var(--bg);color:var(--text);border:1px solid var(--line);border-radius:10px;padding:8px 10px;font-size:13px}
 #sheetStat{font-size:12px;color:var(--muted);margin-top:8px}
 .vwrap{display:inline-flex;gap:4px;align-items:stretch}
 .vedit{border:1px solid var(--line);background:var(--surface2);color:var(--muted);border-radius:10px;padding:0 9px;font-size:12px}
@@ -150,7 +153,7 @@ h2{font-size:16px;font-weight:900;margin-top:6px}
     </div>
     <div class="seg" role="tablist" aria-label="구분">
       <button role="tab" data-act="section" data-section="stretch" id="sec-stretch">스트레칭</button>
-      <button role="tab" data-act="section" data-section="workout" id="sec-workout">근력 운동</button>
+      <button role="tab" data-act="section" data-section="workout" id="sec-workout">운동</button>
     </div>
     <div class="tabs" id="stretchTabs" role="tablist" aria-label="스트레칭 모드">
       <button class="tab" role="tab" data-act="mode" data-mode="full" id="tab-full">취침 전 풀 루틴<br>15분</button>
@@ -222,7 +225,7 @@ h2{font-size:16px;font-weight:900;margin-top:6px}
 <div class="modal" id="modal" hidden role="dialog" aria-modal="true" aria-labelledby="mTitle">
   <div class="dlg">
     <h3 id="mTitle">오늘 세트 기록을 초기화할까요?</h3>
-    <p>스트레칭과 근력 운동의 모든 체크가 해제됩니다. 오늘 풀 루틴 완료로 올라간 연속 일수도 함께 되돌려집니다.</p>
+    <p>스트레칭과 운동의 모든 체크가 해제됩니다. 오늘 풀 루틴 완료로 올라간 연속 일수도 함께 되돌려집니다.</p>
     <div class="acts"><button data-act="cancelReset">취소</button><button class="danger" data-act="doReset">초기화</button></div>
   </div>
 </div>
@@ -471,7 +474,7 @@ const EX = {
     videos:[]
   },
   buildup:{
-    id:'buildup', name:'3.2km 빌드업', target:'유산소 지구력 · 페이스 전환 · 왕복오래달리기 전이',
+    id:'buildup', run:true, name:'3.2km 빌드업', target:'유산소 지구력 · 페이스 전환 · 왕복오래달리기 전이',
     rx:'1km 내리막 6:00~6:10 → 2km 5:55~6:05 → 마지막 오르막 최대 (목표 6:05 이내)', rest:'세트 없음 (구간 체크)', rpe:'RPE 6~9 (구간별 상승)', restSec:0,
     ph:'거리·시간 (예: 3.2km 19:27)',
     prog:'기준 기록 11/16 마지막 오르막 구간 6\'17". 마지막 오르막이 목표보다 15초 이상 빠르고 여유가 있으면 다음 목표 페이스로 올립니다. 목표 페이스는 시트 기준이며 임의로 올리지 않습니다.',
@@ -481,7 +484,7 @@ const EX = {
     videos:[]
   },
   jog:{
-    id:'jog', name:'3.2km 조깅', target:'유산소 기반 · 회복 · 케이던스 교정',
+    id:'jog', run:true, name:'3.2km 조깅', target:'유산소 기반 · 회복 · 케이던스 교정',
     rx:'평균 심박 150 이하, 첫 1km 8분대, 메트로놈 155bpm 처음 2km', rest:'세트 없음 (연속)', rpe:'RPE 4~5', restSec:0,
     ph:'거리·시간·심박 (예: 3.2km 28:00 / 148)',
     prog:'케이던스 155 → 2주 뒤 160. 평균 심박 150 이하가 우선이며 페이스는 심박에 맞춥니다. 같은 페이스인데 평균 심박이 평소보다 5 이상 높으면 과훈련 신호입니다.',
@@ -491,7 +494,7 @@ const EX = {
     videos:[]
   },
   longrun:{
-    id:'longrun', name:'지속주 (장거리)', target:'유산소 지구력 · 왕복오래달리기 지구력',
+    id:'longrun', run:true, name:'지속주 (장거리)', target:'유산소 지구력 · 왕복오래달리기 지구력',
     rx:'평균 심박 150 이하, 초반 내리막 참기', rest:'세트 없음 (연속)', rpe:'RPE 5~6', restSec:0,
     ph:'거리·시간·심박 (예: 5.5km 43:00 / 150)',
     prog:'11/20 5.5km → 12/4 이후 6.0km 유지. 마지막 스퍼트 금지(스퍼트는 월요일에). 거리만 올리고 페이스는 올리지 않습니다.',
@@ -799,7 +802,23 @@ const SHEET_KEY = 'ff_sitreach_sheet';
 function sheetUrl(){ try{ return localStorage.getItem(SHEET_KEY)||''; }catch(e){ return ''; } }
 function setSheetStat(t){ const el=document.getElementById('sheetStat'); if(el) el.textContent=t; }
 function isWarm(ex){ return ex.id==='wu' || ex.id==='wuLow' || ex.id==='wuBuild' || ex.id==='wuWalk'; }
+const RUN_FIELDS = [['d','거리(km)','decimal','3.2'],['t','시간','text','19:27'],['p','평균 페이스','text','자동 계산'],['ha','평균 심박','numeric','150'],['hm','최고 심박','numeric','180'],['c','케이던스','numeric','160'],['r','RPE','decimal','6']];
+function paceOf(d,t){
+  const km=parseFloat(d), m=String(t||'').trim().match(/^(?:(\d+):)?(\d+):(\d{1,2})$|^(\d+)$/);
+  if(!(km>0) || !m) return '';
+  let sec = m[4]!==undefined ? (+m[4])*60 : ((+(m[1]||0))*3600 + (+m[2])*60 + (+m[3]));
+  const ps = Math.round(sec/km);
+  return Math.floor(ps/60)+"'"+String(ps%60).padStart(2,'0')+'"';
+}
+function runLogHtml(ex){
+  const cur = (S.wlog && S.wlog[ex.id]) || {};
+  return '<div class="runlog">'+RUN_FIELDS.map(f=>{
+    const ph = f[0]==='p' ? (paceOf(cur.d,cur.t) || f[3]) : f[3];
+    return '<label>'+f[1]+'<input data-ex="'+ex.id+'" data-f="'+f[0]+'" inputmode="'+f[2]+'" value="'+esc(cur[f[0]]||'')+'" placeholder="'+esc(ph)+'" aria-label="'+esc(ex.name+' '+f[1])+'"></label>';
+  }).join('')+'</div>';
+}
 function logRowHtml(ex){
+  if(ex.run) return runLogHtml(ex);
   const cur = (S.wlog && S.wlog[ex.id]) || {}, prev = (S.wprev && S.wprev[ex.id]) || {};
   return '<div class="logrow">'+
     '<input class="winp" data-ex="'+ex.id+'" data-f="w" value="'+esc(cur.w||'')+'" placeholder="'+esc(prev.w ? '지난번 '+prev.w : (ex.ph||'무게·칸수 (예: 80kg)'))+'" aria-label="'+esc(ex.name)+' 무게 또는 기록">'+
@@ -813,16 +832,23 @@ function nowStr(){
 }
 function workoutRow(day){
   const W = WORKOUTS[day], parts = [];
+  let run = null;
   W.list.forEach(ex=>{
     if(isWarm(ex)) return;
     const n = ex.sets.filter((_,i)=>S.done[wk(day,ex.id,i)]).length;
     if(!n) return;
     const l = (S.wlog && S.wlog[ex.id]) || {};
     const vol = (n===ex.sets.length) ? plain(ex.rx) : n+'세트 완료';
+    if(ex.run){
+      parts.unshift((l.d?l.d+'km':'')+(l.d&&l.t?' / ':'')+(l.t||'') || plain(ex.name));
+      run = l;
+      return;
+    }
     parts.push(plain(ex.name)+(l.w?' '+l.w:'')+' '+vol+(l.r?' (RPE '+l.r+')':''));
   });
+  const rr = run || {};
   return { date:S.day, weekday:DAYS[weekdayOf(S.day)], kind:W.kind||'근력', name:W.label, content:parts.join(' / '),
-    pace:'', hr:'', cadence:'', rpe:'', memo:'앱 자동 기록' };
+    pace:rr.p||paceOf(rr.d,rr.t), hr:(rr.ha||rr.hm)?((rr.ha||'-')+' / '+(rr.hm||'-')):'', cadence:rr.c||'', rpe:rr.r||'', memo:'앱 자동 기록' };
 }
 function stretchRow(){
   return { date:S.day, weekday:DAYS[weekdayOf(S.day)], kind:'스트레칭', name:'좌전굴 풀 루틴',
@@ -846,7 +872,7 @@ async function maybeSend(){
       const row=workoutRow(day);
       if(await postRow(row)){
         S.sent[id]=true; S.wprev = S.wprev || {};
-        WORKOUTS[day].list.forEach(ex=>{ const l=S.wlog && S.wlog[ex.id]; if(l && (l.w||l.r)) S.wprev[ex.id]={w:l.w||'', r:l.r||''}; });
+        WORKOUTS[day].list.forEach(ex=>{ const l=S.wlog && S.wlog[ex.id]; if(l && (l.w||l.r) && !(WORKOUTS[day].list.find(x=>x.id===ex.id)||{}).run) S.wprev[ex.id]={w:l.w||'', r:l.r||''}; });
         persist();
       }
     }
@@ -1035,7 +1061,7 @@ document.addEventListener('click', e=>{
 });
 document.getElementById('cards').addEventListener('input', e=>{
   const t = e.target;
-  if(!t.classList || !(t.classList.contains('winp')||t.classList.contains('rinp'))) return;
+  if(!t.dataset || !t.dataset.ex || !t.dataset.f) return;
   S.wlog = S.wlog || {};
   const o = S.wlog[t.dataset.ex] = S.wlog[t.dataset.ex] || {};
   o[t.dataset.f] = t.value.trim();
