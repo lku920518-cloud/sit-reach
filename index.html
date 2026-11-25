@@ -158,8 +158,11 @@ h2{font-size:16px;font-weight:900;margin-top:6px}
       <button class="tab" role="tab" data-act="mode" data-mode="exam" id="tab-exam">시험 직전 대기<br>2분</button>
     </div>
     <div class="tabs" id="workoutTabs" role="tablist" aria-label="운동 요일" hidden>
+      <button class="tab" role="tab" data-act="wday" data-day="mon" id="wd-mon">월 · 이지런</button>
       <button class="tab" role="tab" data-act="wday" data-day="tue" id="wd-tue">화 · 하체 + 점프</button>
+      <button class="tab" role="tab" data-act="wday" data-day="wed" id="wd-wed">수 · 조깅 + 코어</button>
       <button class="tab" role="tab" data-act="wday" data-day="thu" id="wd-thu">목 · 당기기 + 푸시업</button>
+      <button class="tab" role="tab" data-act="wday" data-day="fri" id="wd-fri">금 · 셔틀런</button>
       <button class="tab" role="tab" data-act="wday" data-day="sat" id="wd-sat">토 · 상체 + 코어</button>
     </div>
   </div>
@@ -450,6 +453,66 @@ const EX = {
       {label:'사이드 플랭크 자세 시연', url:'https://youtu.be/vm2GEpNL7NU?t=123'}
     ]
   },
+  /* ----- 월·수·금 러닝 / 수요일 코어 ----- */
+  wuRun:{
+    id:'wuRun', name:'러닝 워밍업 5분', target:'종아리 · 아킬레스건 · 고관절 · 발목 준비',
+    rx:'발목 돌리기 10회/측 → 카프레이즈 15회 → 레그스윙 10회/측 → 제자리 가벼운 스킵 30초 → 빠른 걷기 1분', rest:'동작 사이 쉬지 않음', rpe:'RPE 3',  restSec:0,
+    cue:'아킬레스건과 종아리를 먼저 데운 뒤 달립니다. 카프레이즈는 두 발로 천천히 올리고 내립니다. 레그스윙은 허리를 젖히지 말고 골반을 고정합니다. 목은 중립.',
+    err:'뻣뻣한 상태에서 바로 달림 → 워밍업 5분을 건너뛰지 않습니다. 아킬레스건에 찌르는 통증 → 그날 달리기를 걷기로 바꾸고 중단합니다. 허리를 젖혀 레그스윙 → 갈비뼈를 내리고 범위를 줄입니다.',
+    sets:['발목 돌리기 10회/측','카프레이즈 15회','레그스윙 10회/측','가벼운 스킵 30초','빠른 걷기 1분'],
+    videos:[]
+  },
+  easyRun:{
+    id:'easyRun', name:'이지런 (Zone 2)', target:'유산소 기반 · 왕복오래달리기 지구력 · 아킬레스/무릎 적응',
+    rx:'25분 연속 조깅', rest:'세트 없음 (연속)', rpe:'RPE 4~5 (대화 가능한 속도)', restSec:0,
+    work:{sec:1500,label:'이지런 25분'},
+    ph:'거리·시간 (예: 4.2km 25분)',
+    prog:'1~2주 25분 → 이후 주 +2~3분씩 최대 40분. 속도가 아니라 시간부터 늘립니다. 목표 심박은 최대심박(220-나이) 65~75% 추정 약 121~140bpm이며 개인차가 큽니다(확인 불가). 전주보다 무릎·아킬레스 통증이 있으면 시간을 늘리지 않습니다.',
+    cue:'186cm는 보폭이 커져 오버스트라이드가 되기 쉽습니다. 보폭을 줄이고 케이던스 170~180 느낌으로 몸 바로 아래에 착지합니다. 상체는 살짝 앞으로, 시선은 15~20m 앞, 어깨와 턱은 힘을 뺍니다. 가능하면 쿠션 있는 지면(트랙·러버)에서 합니다.',
+    err:'속도가 점점 올라 RPE 6 이상 → 페이스를 낮추고 대화 가능 속도로 맞춥니다. 뒤꿈치로 크게 내딛음 → 보폭을 줄이고 케이던스를 올립니다. 종아리/아킬레스 당김이 심해짐 → 걷기로 전환하고 그날 종료합니다. 무릎 안쪽 통증 → 중단합니다.',
+    sets:['이지런 25분 완료'],
+    videos:[]
+  },
+  wedRun:{
+    id:'wedRun', name:'리커버리 조깅', target:'혈류 회복 · 화요일 하체 피로 해소 · 아킬레스건 부하 유지',
+    rx:'20분 연속 조깅', rest:'세트 없음 (연속)', rpe:'RPE 3~4 (매우 편하게)', restSec:0,
+    work:{sec:1200,label:'리커버리 조깅 20분'},
+    ph:'거리·시간 (예: 3.2km 20분)',
+    prog:'월요일 이지런보다 짧고 느리게. 화요일 데드리프트·점프 다음 날이므로 다리가 무거우면 걷기 섞기(조깅 3분 + 걷기 1분)로 대체합니다. 20분이 쉬워져도 늘리지 않고 월요일 시간만 늘립니다.',
+    cue:'속도를 늦추고 호흡이 완전히 편한 선을 지킵니다. 보폭을 줄이고 발을 몸 아래에 착지합니다. 종아리와 아킬레스건이 뻣뻣하면 첫 5분은 걷기에 가깝게 시작합니다.',
+    err:'화요일 근육통이 남은 상태에서 페이스를 올림 → 회복 목적이므로 RPE 4를 넘기지 않습니다. 무릎 통증 → 즉시 걷기로 전환합니다.',
+    sets:['리커버리 조깅 20분 완료'],
+    videos:[]
+  },
+  shuttle:{
+    id:'shuttle', name:'20m 왕복 인터벌 (왕복오래달리기 전이)', target:'왕복오래달리기 · 방향 전환 · 유산소 파워',
+    rx:'60초 왕복 × 4세트 (20m 왕복 비프음 앱 사용)', rest:'휴식 90초 (걷기)', rpe:'RPE 6~7', restSec:90,
+    work:{sec:60,label:'왕복 60초'},
+    ph:'왕복 횟수 (예: 세트당 7회)',
+    prog:'1~2주 60초 × 4세트 → 3~4주 75초 × 4세트 → 이후 90초 × 4세트 또는 5세트. 한 번에 시간이나 세트 중 하나만 올립니다. 속도를 올리는 것은 맨 마지막입니다. 시험 구간별 속도·판정 기준은 확인 불가이므로 해당 연도 공고를 확인하세요.',
+    cue:'20m 라인에서 한 발을 라인에 딛고 몸을 돌려 반대로 출발합니다(점프 회전 금지). 186cm는 회전 시 무게중심이 높아 무릎이 안으로 모이기 쉬우니 라인 앞에서 보폭을 줄이고 낮게 회전합니다. 회전은 라인 안쪽 발을 축으로 합니다. 신발은 접지력 있는 실내/트랙용으로 합니다.',
+    err:'라인 직전에 급감속하며 무릎이 안으로 모임 → 라인 3~4m 전부터 보폭을 줄이고 무릎을 발끝 방향으로 유지합니다. 마지막 세트에서 자세가 무너짐 → 세트를 줄이고 시간은 늘리지 않습니다. 아킬레스 통증 → 즉시 중단합니다. 미끄러운 바닥 → 하지 않습니다.',
+    sets:['1세트 (60초)','2세트 (60초)','3세트 (60초)','4세트 (60초)'],
+    videos:[]
+  },
+  curlup:{
+    id:'curlup', name:'맥길 컬업', target:'복직근 · 요추 안정 (윗몸일으키기 전이, 요추 보호형)',
+    rx:'10초 유지 × 5회 × 2세트 (피라미드 없이 고정)', rest:'휴식 45초', restSec:45, rpe:'RPE 5~6',
+    work:{sec:10,label:'컬업 10초 유지'},
+    cue:'한쪽 다리는 펴고 반대 무릎은 굽힙니다. 두 손을 허리 밑에 깔아 요추의 자연 곡선을 유지합니다. 머리·어깨를 살짝만 들어 올리고 10초 유지(턱을 당기지 않고 목은 중립). 윗몸일으키기 전에 복부 지구력을 만드는 동작이며 허리를 말아 올리지 않습니다.',
+    err:'허리를 말아 올림 → 범위를 줄이고 어깨만 살짝 듭니다. 목이 꺾임 → 시선을 천장에 고정합니다. 숨을 참음 → 짧게 호흡하며 유지합니다. 다리 쪽을 바꿔가며 진행합니다.',
+    sets:['1세트 (10초 × 5회)','2세트 (10초 × 5회)'],
+    videos:[]
+  },
+  pallof:{
+    id:'pallof', name:'팔로프 프레스 (밴드)', target:'복사근 · 복횡근 · 항회전 코어',
+    rx:'10회/측 × 3세트 (끝에서 2초 정지)', rest:'휴식 45초', restSec:45, rpe:'RPE 6',
+    ph:'밴드 강도 (예: 중)',
+    cue:'밴드를 가슴 높이에 걸고 옆으로 서서 손을 가슴 앞에 모읍니다. 팔을 앞으로 뻗어 2초 정지하며 몸통이 돌아가지 않게 버팁니다. 갈비뼈를 내리고 골반 중립, 무릎은 약간 굽힙니다. 186cm는 밴드 고정점을 높이고 발 간격을 넓혀 안정시킵니다.',
+    err:'몸통이 밴드 쪽으로 돌아감 → 밴드 강도를 낮추거나 발 간격을 넓힙니다. 허리를 젖힘 → 갈비뼈를 내리고 엉덩이를 조입니다. 어깨가 올라감 → 어깨를 내리고 시작합니다.',
+    sets:['좌측 1세트 (10회)','우측 1세트 (10회)','좌측 2세트 (10회)','우측 2세트 (10회)','좌측 3세트 (10회)','우측 3세트 (10회)'],
+    videos:[]
+  },
   /* ----- 화요일 (하체) : 시트 '운동계획' 탭 기준 ----- */
   wuLow:{
     id:'wuLow', name:'하체 워밍업 5분', target:'둔근 · 햄스트링 · 발목 · 고관절 준비',
@@ -518,7 +581,17 @@ const EX = {
     ]
   }
 };
+const WDAY_BY_DOW = {1:'mon',2:'tue',3:'wed',4:'thu',5:'fri',6:'sat'};
 const WORKOUTS = {
+  mon:{ label:'월 · 이지런', title:'러닝 · 월요일', kind:'러닝',
+    text:'월요일은 장거리 이지런(Zone 2) 하루입니다. 화요일 하체 + 점프 전날이라 강도를 올리지 않습니다. 총 시간 30분 내외(워밍업 5분 + 이지런 25분).',
+    list:[EX.wuRun, EX.easyRun] },
+  wed:{ label:'수 · 조깅 + 코어', title:'러닝 + 코어 · 수요일', kind:'러닝',
+    text:'화요일 하체 다음 날이므로 회복 조깅과 코어 위주입니다. 컬업 → 팔로프 프레스 → 데드버그 → 사이드 플랭크 순서이며 총 약 45분입니다.',
+    list:[EX.wuRun, EX.wedRun, EX.curlup, EX.pallof, EX.deadbug, EX.sideplank] },
+  fri:{ label:'금 · 셔틀런', title:'러닝 · 금요일', kind:'러닝',
+    text:'왕복오래달리기 특이 훈련일입니다. 목요일 당기기 + 푸시업 다음 날이며 토요일 상체 전이므로 다리에 피로를 남기지 않는 볼륨으로 합니다. 총 약 30분.',
+    list:[EX.wuRun, EX.shuttle] },
   tue:{ label:'화 · 하체 + 점프', title:'근력 운동 · 화요일',
     text:'브로드점프 → 데드리프트 → 랙풀 → 불가리안 스플릿 스쿼트 → 카프레이즈 순서입니다. 운동 30~60분 전 콜라겐 10~15g, 30분 전 물 300ml. 모든 근력 운동은 RPE 7까지만, 목에서 팔로 저림·처음 겪는 두통·가슴 답답함이 있으면 즉시 중단합니다.',
     list:[EX.wuLow, EX.broad, EX.dl, EX.rackpull, EX.bss, EX.calf] },
@@ -556,7 +629,8 @@ function countKeys(keys){ return keys.filter(k=>S.done[k]).length; }
 function ensureDay(){
   const today = dayKey();
   let changed = false;
-  if(S.day !== today){ S.day = today; S.done = {}; S.undo = null; S.sent = {}; S.wlog = {}; changed = true; }
+  if(S.day !== today){ S.day = today; S.done = {}; S.undo = null; S.sent = {}; S.wlog = {}; changed = true;
+    const dw = WDAY_BY_DOW[weekdayOf(today)]; if(dw && WORKOUTS[dw]) S.wday = dw; }
   if(S.lastDone && dnum(today)-dnum(S.lastDone) > 1 && S.streak !== 0){ S.streak = 0; changed = true; }
   return changed;
 }
@@ -693,11 +767,11 @@ function renderStretch(){
 function renderWorkout(){
   const day = S.wday, W = WORKOUTS[day];
   document.getElementById('title').textContent = W.title;
-  ['tue','thu','sat'].forEach(k=>document.getElementById('wd-'+k).setAttribute('aria-selected', String(k===day)));
+  ['mon','tue','wed','thu','fri','sat'].forEach(k=>document.getElementById('wd-'+k).setAttribute('aria-selected', String(k===day)));
   const keys = workoutKeys(day);
   setProgress('오늘 운동 진행률', countKeys(keys), keys.length);
   const todayDow = weekdayOf(S.day);
-  const hint = ((todayDow===2 && day!=='tue') || (todayDow===4 && day!=='thu') || (todayDow===6 && day!=='sat')) ? '<em>오늘 요일과 다른 루틴을 보고 있습니다.</em>' : '';
+  const hint = (WDAY_BY_DOW[todayDow] && WDAY_BY_DOW[todayDow]!==day) ? '<em>오늘 요일과 다른 루틴을 보고 있습니다.</em>' : '';
   document.getElementById('banner').innerHTML = esc(W.text) + hint;
 
   document.getElementById('cards').innerHTML = W.list.map((ex,exIdx)=>{
@@ -715,7 +789,7 @@ function renderWorkout(){
       '<div class="card-head"><div><span class="badge">'+(exIdx===0?'WARM-UP':(exIdx)+' / '+(W.list.length-1))+'</span><span class="sub">'+esc(ex.target)+'</span><h2>'+esc(ex.name)+'</h2></div>'+
       '<button class="allbtn" data-act="wall" data-ex="'+ex.id+'">'+(full?'완료됨':'전체 체크')+' ('+n+'/'+ex.sets.length+')</button></div>'+
       '<div class="meta"><span class="chip">'+esc(ex.rx)+'</span><span class="chip">'+esc(ex.rest)+'</span><span class="chip rpe">'+esc(ex.rpe)+'</span>'+timers+'</div>'+
-      (exIdx===0 && (ex.id==='wu'||ex.id==='wuLow') ? '' : logRowHtml(ex))+
+      (exIdx===0 && isWarm(ex) ? '' : logRowHtml(ex))+
       '<div class="vids">'+vidsHtml(ex.videos)+'</div>'+
       '<div class="cues"><p><b class="cue-a">[셋업 큐]</b>'+esc(ex.cue)+'</p>'+(ex.prog?'<p><b class="cue-a">[진행 기준]</b>'+esc(ex.prog)+'</p>':'')+'<p><b class="cue-r">[흔한 에러 · 수정 큐]</b>'+esc(ex.err)+'</p></div>'+
       '<div class="sets">'+sets+'</div></article>';
@@ -727,11 +801,11 @@ function renderWorkout(){
 const SHEET_KEY = 'ff_sitreach_sheet';
 function sheetUrl(){ try{ return localStorage.getItem(SHEET_KEY)||''; }catch(e){ return ''; } }
 function setSheetStat(t){ const el=document.getElementById('sheetStat'); if(el) el.textContent=t; }
-function isWarm(ex){ return ex.id==='wu' || ex.id==='wuLow'; }
+function isWarm(ex){ return ex.id==='wu' || ex.id==='wuLow' || ex.id==='wuRun'; }
 function logRowHtml(ex){
   const cur = (S.wlog && S.wlog[ex.id]) || {}, prev = (S.wprev && S.wprev[ex.id]) || {};
   return '<div class="logrow">'+
-    '<input class="winp" data-ex="'+ex.id+'" data-f="w" value="'+esc(cur.w||'')+'" placeholder="'+esc(prev.w ? '지난번 '+prev.w : '무게·칸수 (예: 80kg)')+'" aria-label="'+esc(ex.name)+' 무게 또는 기록">'+
+    '<input class="winp" data-ex="'+ex.id+'" data-f="w" value="'+esc(cur.w||'')+'" placeholder="'+esc(prev.w ? '지난번 '+prev.w : (ex.ph||'무게·칸수 (예: 80kg)'))+'" aria-label="'+esc(ex.name)+' 무게 또는 기록">'+
     '<input class="rinp" data-ex="'+ex.id+'" data-f="r" inputmode="decimal" value="'+esc(cur.r||'')+'" placeholder="RPE" aria-label="RPE">'+
   '</div>';
 }
@@ -750,7 +824,7 @@ function workoutRow(day){
     const vol = (n===ex.sets.length) ? plain(ex.rx) : n+'세트 완료';
     parts.push(plain(ex.name)+(l.w?' '+l.w:'')+' '+vol+(l.r?' (RPE '+l.r+')':''));
   });
-  return { date:S.day, weekday:DAYS[weekdayOf(S.day)], kind:'근력', name:W.label, content:parts.join(' / '),
+  return { date:S.day, weekday:DAYS[weekdayOf(S.day)], kind:W.kind||'근력', name:W.label, content:parts.join(' / '),
     pace:'', hr:'', cadence:'', rpe:'', memo:'앱 자동 기록' };
 }
 function stretchRow(){
